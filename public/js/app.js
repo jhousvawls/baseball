@@ -4,10 +4,11 @@ import { getFirestore, collection, getDocs, doc, updateDoc, addDoc, deleteDoc, o
 import { getAuth, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
 // Import application modules
-import { FIREBASE_CONFIG } from './config/firebase.js';
-import { showConfirmation } from './modules/confirmation.js';
-import { YOUTUBE_API_KEY, YOUTUBE_API_BASE_URL } from './utils/constants.js';
-import { extractVideoId, formatDate, debounce } from './utils/helpers.js';
+import { FIREBASE_CONFIG } from '../js/config/firebase.js';
+import { showConfirmation } from '../js/modules/confirmation.js';
+import { videoSearchManager } from '../js/modules/videoSearch.js';
+import { SUPER_ADMIN_EMAIL, YOUTUBE_API_KEY, YOUTUBE_API_BASE_URL } from '../js/utils/constants.js';
+import { extractVideoId, formatDate, getTimeAgo, getErrorMessage, showAdminError } from '../js/utils/helpers.js';
 
 // Initialize Firebase
 const app = initializeApp(FIREBASE_CONFIG);
@@ -15,8 +16,6 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// Constants
-const SUPER_ADMIN_EMAIL = 'admin@braves-practice.com';
 
 // Global state
 let practices = [];
@@ -95,7 +94,21 @@ async function handleAuthSuccess(user) {
             isSuperAdmin = true;
             console.log("Admin user detected by email pattern");
             showAdminDashboard();
+            return;
         }
+        
+        // If user is not authorized, show error and close modal
+        console.log("User not authorized for admin access:", user.email);
+        const adminModal = document.getElementById('admin-modal');
+        const errorDiv = document.getElementById('admin-error');
+        errorDiv.textContent = 'You are not authorized to access the admin panel. Please contact the super admin.';
+        errorDiv.classList.remove('hidden');
+        
+        // Sign out unauthorized user
+        setTimeout(() => {
+            signOut(auth);
+            adminModal.classList.add('hidden');
+        }, 3000);
     }
 }
 
@@ -1239,36 +1252,21 @@ function renderActivity() {
             <div class="activity-content">
                 <h4>${change.changedByName} ${change.changeType} "${change.practiceTitle}"</h4>
                 <p>Practice ${change.practiceId} was ${change.changeType}</p>
-                <span class="activity-time">${formatTimeAgo(change.changedAt?.toDate?.() || new Date())}</span>
+                <span class="activity-time">${getTimeAgo(change.changedAt?.toDate?.() || new Date())}</span>
             </div>
         `;
         container.appendChild(item);
     });
 }
 
-function formatTimeAgo(date) {
-    const now = new Date();
-    const diffInSeconds = Math.floor((now - date) / 1000);
-    
-    if (diffInSeconds < 60) return 'Just now';
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-    return `${Math.floor(diffInSeconds / 86400)} days ago`;
-}
 
 // --- VIDEO SEARCH FUNCTIONALITY ---
+// Use unified video search module for all video search operations
 async function searchVideos(inputId, searchTerm) {
     const input = document.getElementById(inputId);
     if (!input) return;
     
     currentVideoSearchTarget = inputId;
-    
-    // Check cache first
-    const cacheKey = searchTerm.toLowerCase();
-    if (videoSearchCache.has(cacheKey)) {
-        showVideoResults(videoSearchCache.get(cacheKey), searchTerm);
-        return;
-    }
     
     const dropdown = document.getElementById('video-search-dropdown');
     const searchTermEl = document.getElementById('search-term');
@@ -1291,49 +1289,14 @@ async function searchVideos(inputId, searchTerm) {
     dropdown.classList.remove('hidden');
     
     try {
-        const query = `${searchTerm} youth baseball drill kids training`;
-        const url = `${YOUTUBE_API_BASE_URL}?part=snippet&q=${encodeURIComponent(query)}&type=video&videoDuration=short&safeSearch=strict&maxResults=5&key=${YOUTUBE_API_KEY}`;
-        
-        const response = await fetch(url);
-        const data = await response.json();
-        
-        if (data.error) {
-            throw new Error(data.error.message);
-        }
-        
-        const filteredVideos = filterVideoResults(data.items || []);
-        
-        // Cache results
-        videoSearchCache.set(cacheKey, filteredVideos);
-        
-        showVideoResults(filteredVideos, searchTerm);
-        
+        // Use unified video search manager
+        const videos = await videoSearchManager.searchVideos(searchTerm);
+        showVideoResults(videos, searchTerm);
     } catch (error) {
         console.error('Video search error:', error);
         loadingEl.classList.add('hidden');
         errorEl.classList.remove('hidden');
     }
-}
-
-function filterVideoResults(videos) {
-    return videos.filter(video => {
-        const title = video.snippet.title.toLowerCase();
-        const description = video.snippet.description.toLowerCase();
-        
-        // Include baseball-related terms
-        const baseballTerms = ['baseball', 'drill', 'youth', 'kids', 'training', 'coaching', 'practice'];
-        const hasBaseballContent = baseballTerms.some(term => 
-            title.includes(term) || description.includes(term)
-        );
-        
-        // Exclude inappropriate content
-        const excludeTerms = ['injury', 'accident', 'fail', 'blooper', 'fight', 'error'];
-        const hasInappropriateContent = excludeTerms.some(term => 
-            title.includes(term) || description.includes(term)
-        );
-        
-        return hasBaseballContent && !hasInappropriateContent;
-    });
 }
 
 function showVideoResults(videos, searchTerm) {
@@ -1463,20 +1426,46 @@ document.addEventListener('DOMContentLoaded', () => {
     
     googleSigninBtn?.addEventListener('click', async () => {
         try {
-            // Try popup first, fallback to redirect if it fails
-            try {
-                const result = await signInWithPopup(auth, provider);
-                console.log('Google sign-in successful:', result.user);
-                adminModal.classList.add('hidden');
-            } catch (popupError) {
-                console.log('Popup blocked, trying redirect...', popupError);
-                // If popup fails, use redirect
-                await signInWithRedirect(auth, provider);
-            }
+            console.log('Starting Google sign-in...');
+            
+            // Clear any previous errors
+            const errorDiv = document.getElementById('admin-error');
+            errorDiv.classList.add('hidden');
+            
+            // Show loading state
+            googleSigninBtn.disabled = true;
+            googleSigninBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-3"></i>Signing in...';
+            
+            // Try popup first
+            const result = await signInWithPopup(auth, provider);
+            console.log('Google sign-in successful:', result.user);
+            
+            // Don't close modal here - let handleAuthSuccess do it
+            
         } catch (error) {
             console.error('Google sign-in error:', error);
+            
+            // Reset button state
+            googleSigninBtn.disabled = false;
+            googleSigninBtn.innerHTML = `
+                <svg class="w-5 h-5 mr-3" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Sign in with Google
+            `;
+            
+            // Show error message
             const errorDiv = document.getElementById('admin-error');
-            errorDiv.textContent = 'Sign-in failed. Please try again.';
+            if (error.code === 'auth/popup-closed-by-user') {
+                errorDiv.textContent = 'Sign-in was cancelled. Please try again.';
+            } else if (error.code === 'auth/popup-blocked') {
+                errorDiv.textContent = 'Popup was blocked. Please allow popups and try again.';
+            } else {
+                errorDiv.textContent = 'Sign-in failed. Please try again.';
+            }
             errorDiv.classList.remove('hidden');
         }
     });

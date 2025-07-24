@@ -97,14 +97,13 @@
         </div>
     </div>
 
-    <script>
-        // --- CONFIGURATION ---
-        const YOUTUBE_API_KEY = 'AIzaSyDbFiqPG91hq5_ie2vgVQ6ex98Cp4At52U';
-        const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3/search';
+    <script type="module">
+        // Import unified modules
+        import { videoSearchManager } from './js/modules/videoSearch.js';
+        import { YOUTUBE_API_KEY, YOUTUBE_API_BASE_URL } from './js/utils/constants.js';
         
         // Global variables
         let currentVideoSearchTarget = null;
-        let videoSearchCache = new Map();
 
         // Initialize debug info
         document.addEventListener('DOMContentLoaded', () => {
