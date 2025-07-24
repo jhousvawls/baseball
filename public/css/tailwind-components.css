@@ -173,6 +173,10 @@
     @apply text-braves-navy border-braves-red;
   }
   
+  .nav-tab.active {
+    @apply text-braves-navy border-braves-red;
+  }
+  
   .practice-selector {
     @apply grid grid-cols-4 sm:grid-cols-8 gap-2 p-2;
   }
