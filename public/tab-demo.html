@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tab Navigation Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --braves-navy: #13274F;
+            --braves-red: #CE1141;
+            --braves-red-hover: #b10e37;
+        }
+        
+        .text-braves-navy {
+            color: var(--braves-navy);
+        }
+        
+        .text-braves-red {
+            color: var(--braves-red);
+        }
+        
+        .bg-braves-red {
+            background-color: var(--braves-red);
+        }
+        
+        .border-braves-red {
+            border-color: var(--braves-red);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold text-braves-navy mb-6">Admin Dashboard - Tab Navigation Demo</h1>
+        
+        <!-- Admin Navigation Tabs -->
+        <div class="bg-white rounded-xl shadow-md mb-6">
+            <div class="flex border-b">
+                <button id="practices-tab" class="flex-1 py-3 px-4 text-center font-semibold text-braves-navy border-b-2 border-braves-red">
+                    <i class="fas fa-baseball-ball mr-2"></i>Practices
+                </button>
+                <button id="coaches-tab" class="flex-1 py-3 px-4 text-center font-semibold text-gray-500 hover:text-braves-navy transition-colors">
+                    <i class="fas fa-users mr-2"></i>Coaches
+                </button>
+                <button id="activity-tab" class="flex-1 py-3 px-4 text-center font-semibold text-gray-500 hover:text-braves-navy transition-colors">
+                    <i class="fas fa-history mr-2"></i>Activity
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab Content Areas -->
+        <div id="practices-content" class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-xl font-bold text-braves-navy mb-4">Practices Content</h2>
+            <p class="text-gray-600">This is the practices tab content. The red underline should be visible above.</p>
+        </div>
+
+        <div id="coaches-content" class="bg-white rounded-xl shadow-md p-6 hidden">
+            <h2 class="text-xl font-bold text-braves-navy mb-4">Coaches Content</h2>
+            <p class="text-gray-600">This is the coaches tab content. When this tab is active, it should have the red underline.</p>
+        </div>
+
+        <div id="activity-content" class="bg-white rounded-xl shadow-md p-6 hidden">
+            <h2 class="text-xl font-bold text-braves-navy mb-4">Activity Content</h2>
+            <p class="text-gray-600">This is the activity tab content. When this tab is active, it should have the red underline.</p>
+        </div>
+        
+        <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <h3 class="font-semibold text-blue-800 mb-2">✅ Tab Navigation Fix Applied</h3>
+            <p class="text-blue-700 text-sm">
+                The tab switching functionality has been fixed. Click on different tabs to see the red underline move to the active tab.
+                The issue was that the JavaScript was using incorrect CSS classes that didn't match the HTML structure.
+            </p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script>
+        function switchTab(tabName) {
+            // Hide all content areas
+            document.getElementById('practices-content').classList.add('hidden');
+            document.getElementById('coaches-content').classList.add('hidden');
+            document.getElementById('activity-content').classList.add('hidden');
+            
+            // Remove active class from all tabs
+            const allTabs = ['practices-tab', 'coaches-tab', 'activity-tab'];
+            allTabs.forEach(tabId => {
+                const tab = document.getElementById(tabId);
+                if (tab) {
+                    tab.classList.remove('border-b-2', 'border-braves-red', 'text-braves-navy');
+                    tab.classList.add('text-gray-500', 'hover:text-braves-navy');
+                }
+            });
+            
+            // Show selected content and activate tab
+            const selectedTab = document.getElementById(`${tabName}-tab`);
+            const selectedContent = document.getElementById(`${tabName}-content`);
+            
+            if (selectedTab && selectedContent) {
+                selectedTab.classList.add('border-b-2', 'border-braves-red', 'text-braves-navy');
+                selectedTab.classList.remove('text-gray-500');
+                selectedContent.classList.remove('hidden');
+            }
+        }
+
+        // Add event listeners
+        document.getElementById('practices-tab').addEventListener('click', () => switchTab('practices'));
+        document.getElementById('coaches-tab').addEventListener('click', () => switchTab('coaches'));
+        document.getElementById('activity-tab').addEventListener('click', () => switchTab('activity'));
+    </script>
+</body>
+</html>

@@ -1379,10 +1379,13 @@ function switchTab(tabName) {
     document.getElementById('activity-content').classList.add('hidden');
     
     // Remove active class from all tabs
-    document.querySelectorAll('.admin-tab').forEach(tab => {
-        tab.classList.remove('active');
-        tab.classList.add('text-gray-500');
-        tab.classList.remove('text-braves-navy', 'border-braves-red');
+    const allTabs = ['practices-tab', 'coaches-tab', 'activity-tab'];
+    allTabs.forEach(tabId => {
+        const tab = document.getElementById(tabId);
+        if (tab) {
+            tab.classList.remove('border-b-2', 'border-braves-red', 'text-braves-navy');
+            tab.classList.add('text-gray-500', 'hover:text-braves-navy');
+        }
     });
     
     // Show selected content and activate tab
@@ -1390,7 +1393,7 @@ function switchTab(tabName) {
     const selectedContent = document.getElementById(`${tabName}-content`);
     
     if (selectedTab && selectedContent) {
-        selectedTab.classList.add('active', 'text-braves-navy', 'border-braves-red');
+        selectedTab.classList.add('border-b-2', 'border-braves-red', 'text-braves-navy');
         selectedTab.classList.remove('text-gray-500');
         selectedContent.classList.remove('hidden');
         
