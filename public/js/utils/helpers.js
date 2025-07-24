@@ -63,7 +63,7 @@ export function getYouTubeEmbedUrl(url) {
 export function showMessage(message, type = 'info', duration = 3000) {
     const messageEl = document.createElement('div');
     const bgColor = type === 'success' ? 'bg-green-500' : 
-                   type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+                   type === 'error' ? 'bg-braves-red' : 'bg-braves-navy';
     
     messageEl.className = `fixed top-4 right-4 z-50 p-4 rounded-lg text-white font-semibold ${bgColor}`;
     messageEl.textContent = message;

@@ -678,7 +678,7 @@ function displayPractice(practiceNumber) {
                     <p class="text-gray-700 mb-4">${station.desc}</p>
                     ${station.video ? `
                         <button onclick="openVideo('${station.video}', '${station.name}')" 
-                                class="video-link bg-blue-900 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-blue-800 transition-all">
+                                class="video-link bg-braves-navy text-white px-4 py-2 rounded text-sm font-semibold hover:bg-braves-red transition-all">
                             <i class="fas fa-play mr-2"></i>Watch Station Drill
                         </button>
                     ` : ''}
@@ -820,7 +820,7 @@ function renderAdminPractices() {
                 </div>
                 <div class="flex space-x-2">
                     <button onclick="editPractice('${practice.docId}')" 
-                            class="bg-blue-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-600 transition-all">
+                            class="bg-braves-navy text-white px-3 py-2 rounded-lg text-sm hover:bg-braves-red transition-all">
                         <i class="fas fa-edit mr-1"></i>Edit
                     </button>
                 </div>
@@ -1125,7 +1125,7 @@ function renderCoaches() {
                     ${coach.isActive ? 'Deactivate' : 'Activate'}
                 </button>
                 <button onclick="removeCoach('${coach.id}')" 
-                        class="px-3 py-1 bg-red-500 text-white rounded text-sm">
+                        class="px-3 py-1 bg-braves-red text-white rounded text-sm">
                     Remove
                 </button>
             </div>

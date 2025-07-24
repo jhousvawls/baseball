@@ -20,7 +20,7 @@
   }
   
   .btn-danger {
-    @apply bg-red-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition-all focus:ring-2 focus:ring-red-300 focus:outline-none;
+    @apply bg-braves-red text-white px-4 py-2 rounded-lg font-semibold hover:bg-braves-red-hover transition-all focus:ring-2 focus:ring-braves-red-light focus:outline-none;
   }
   
   .btn-icon {
@@ -67,7 +67,7 @@
   }
   
   .practice-duration {
-    @apply text-sm text-gray-600 bg-blue-100 px-3 py-1 rounded-full;
+    @apply text-sm text-braves-navy bg-braves-navy-100 px-3 py-1 rounded-full;
   }
   
   .card-admin {
@@ -101,7 +101,7 @@
   }
   
   .section-duration {
-    @apply text-sm font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded;
+    @apply text-sm font-medium text-braves-navy bg-braves-navy-100 px-2 py-1 rounded;
   }
   
   .section-content {
@@ -140,7 +140,7 @@
   }
   
   .station-video {
-    @apply text-sm text-blue-600 hover:text-blue-800 transition-colors;
+    @apply text-sm text-braves-navy hover:text-braves-red transition-colors;
   }
   
   .station-description {
@@ -190,7 +190,7 @@
   }
   
   .breadcrumb-item {
-    @apply text-blue-600 hover:text-blue-800 transition-colors;
+    @apply text-braves-navy hover:text-braves-red transition-colors;
   }
   
   .breadcrumb-separator {

@@ -5,6 +5,9 @@
   --braves-red: #CE1141;
   --braves-red-hover: #b10e37;
   --braves-red-light: rgba(206, 17, 65, 0.1);
+  --braves-navy-light: rgba(19, 39, 79, 0.1);
+  --braves-navy-50: #f8f9fb;
+  --braves-navy-100: #e8eaf0;
   
   /* Z-Index Scale */
   --z-dropdown: 1000;
@@ -60,6 +63,10 @@ body {
 /* Additional Brand Color Utilities */
 .bg-braves-red-hover {
     background-color: var(--braves-red-hover);
+}
+
+.bg-braves-navy-100 {
+    background-color: var(--braves-navy-100);
 }
 
 .focus-braves-red {
