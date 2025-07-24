@@ -265,14 +265,42 @@ service cloud.firestore {
 - **Logo**: High-quality transparent PNG
 - **Typography**: Inter font family for modern, clean look
 
+### **CSS Architecture**
+The application uses a modern CSS architecture with:
+- **CSS Custom Properties**: Centralized design system with CSS variables
+- **Tailwind CSS**: Utility-first framework via CDN
+- **Component-Based Styles**: Organized by component functionality
+- **Zero Inline Styles**: All styling managed through CSS classes
+
+### **Design System**
+```css
+/* Brand Colors */
+--braves-navy: #13274F;
+--braves-red: #CE1141;
+--braves-red-hover: #b10e37;
+--braves-red-light: rgba(206, 17, 65, 0.1);
+
+/* Z-Index Scale */
+--z-dropdown: 1000;
+--z-modal-backdrop: 1040;
+--z-modal: 1050;
+--z-tooltip: 1060;
+
+/* Animation Timing */
+--transition-fast: 0.15s ease-out;
+--transition-normal: 0.2s ease-in-out;
+--transition-slow: 0.3s ease-in-out;
+```
+
 ### **CSS Classes**
-- `.bg-braves-navy`: Navy background
-- `.text-braves-navy`: Navy text
-- `.bg-braves-red`: Red background
-- `.text-braves-red`: Red text
+- `.bg-braves-navy`: Navy background using CSS custom properties
+- `.text-braves-navy`: Navy text using CSS custom properties
+- `.bg-braves-red`: Red background using CSS custom properties
+- `.text-braves-red`: Red text using CSS custom properties
 - `.practice-btn`: Animated practice selector buttons
 - `.video-link`: Styled video link buttons
 - `.animate-fade-in`: Smooth content transitions
+- `.video-search-dropdown`: Positioned video search modal
 
 ## 📱 Responsive Design
 
