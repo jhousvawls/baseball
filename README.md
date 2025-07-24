@@ -23,6 +23,16 @@ A comprehensive, mobile-first web application for managing 6U baseball practice 
 - **Time Management**: Editable durations with auto-calculating total time
 - **Real-time Sync**: Changes appear immediately for all users
 
+### **AI-Powered Coach Assistant**
+- **Intelligent Drill Suggestions**: Get 3 custom drill variations based on team struggles
+- **Auto-Fill Descriptions**: Generate age-appropriate drill descriptions with AI
+- **Parent Communication**: Create ready-to-send practice summaries for parents
+- **Contextual Intelligence**: AI understands 6U baseball coaching needs
+- **Copy-to-Clipboard**: Easy copying of AI-generated content
+- **Mobile-Optimized**: Touch-friendly AI interface for coaching on-the-go
+- **Cost-Effective**: Uses GPT-4o-mini for affordable AI assistance
+- **Seamless Integration**: AI Assistant button on every practice card
+
 ### **Smart Video Finder**
 - **YouTube API Integration**: Automatically search for relevant baseball drill videos
 - **Contextual Search**: Searches based on drill names for targeted results
@@ -773,6 +783,211 @@ function filterVideoResults(videos) {
 - **Video Length**: More granular duration controls
 - **Equipment Needed**: Filter by required equipment (tees, cones, etc.)
 - **Coach Ratings**: Community-driven video quality ratings
+
+## 🤖 AI-Powered Coach Assistant
+
+### **Overview**
+The AI-Powered Coach Assistant revolutionizes practice planning by providing intelligent, contextual coaching support powered by OpenAI's GPT-4o-mini. This cost-effective AI integration helps coaches create better practices, generate content, and communicate effectively with parents.
+
+### **Key Features**
+
+#### **1. Intelligent Drill Suggestions**
+- **Context-Aware**: Describe what your team is struggling with and get 3 targeted drill variations
+- **Age-Appropriate**: All suggestions tailored specifically for 6U baseball players
+- **Equipment Listed**: Each drill includes required equipment for easy planning
+- **Video Integration**: "Find Videos" button connects to Smart Video Finder
+- **Copy-to-Clipboard**: Easy copying of drill details for practice notes
+
+#### **2. Auto-Fill Descriptions**
+- **Drill Enhancement**: Generate detailed, kid-friendly descriptions for existing drills
+- **Coaching Context**: AI considers team struggles and skill level
+- **Professional Quality**: Age-appropriate language perfect for 6-year-olds
+- **Time-Saving**: Instantly fill in missing drill descriptions
+- **Customizable**: Copy and edit descriptions to match your coaching style
+
+#### **3. Parent Communication**
+- **Practice Summaries**: Generate ready-to-send practice summaries for parents
+- **Professional Tone**: Enthusiastic, informative messages that engage families
+- **Key Highlights**: Focuses on skills being developed and practice structure
+- **Copy-Ready**: One-click copying for team group chats or emails
+- **Consistent Messaging**: Maintains professional communication standards
+
+### **How to Use the AI Assistant**
+
+#### **Accessing the Feature**
+1. **Sign in as Admin**: Use Google authentication or email/password
+2. **Navigate to Practices**: Go to the admin dashboard practices tab
+3. **Find AI Assistant**: Look for the subtle navy "✨ AI Assistant" button next to each practice's "Edit" button
+4. **Open Modal**: Click to open the AI Assistant interface
+
+#### **Using Drill Suggestions**
+1. **Describe the Problem**: Enter what your team is struggling with (e.g., "players not watching ball into glove")
+2. **Click "Suggest Drill Variations"**: AI generates 3 custom drill ideas
+3. **Review Results**: Each drill includes name, description, equipment, and key focus
+4. **Find Videos**: Use integrated video search for instructional content
+5. **Copy Content**: Copy drill details to add to your practice plans
+
+#### **Generating Descriptions**
+1. **Select Practice**: Choose a practice that needs better drill descriptions
+2. **Describe Context**: Add any specific team struggles or focus areas
+3. **Click "Auto-Fill Descriptions"**: AI generates descriptions for all drills in the practice
+4. **Copy & Edit**: Copy generated descriptions and customize as needed
+5. **Update Practice**: Paste into practice editor and save changes
+
+#### **Creating Parent Summaries**
+1. **Choose Practice**: Select the practice you want to summarize
+2. **Click "Summarize for Parents"**: AI analyzes the entire practice plan
+3. **Review Summary**: Professional, engaging message highlighting key skills
+4. **Copy Message**: One-click copying for immediate use
+5. **Send to Parents**: Paste into team group chat, email, or communication app
+
+### **Technical Implementation**
+
+#### **OpenAI Integration**
+```javascript
+// AI Assistant Configuration
+const OPENAI_API_KEY = 'your-openai-api-key-here';
+const OPENAI_MODEL = 'gpt-4o-mini';
+const OPENAI_BASE_URL = 'https://api.openai.com/v1/chat/completions';
+
+// Example API Call
+{
+  model: 'gpt-4o-mini',
+  messages: [
+    {
+      role: 'system',
+      content: 'You are a helpful 6U baseball coach assistant...'
+    },
+    {
+      role: 'user', 
+      content: 'My team struggles with throwing accuracy...'
+    }
+  ],
+  max_tokens: 500,
+  temperature: 0.7
+}
+```
+
+#### **Cost-Effective Design**
+- **GPT-4o-mini**: Uses OpenAI's most cost-effective model
+- **Optimized Prompts**: Efficient prompts minimize token usage
+- **Smart Caching**: Reduces redundant API calls
+- **Rate Limiting**: Prevents excessive usage and costs
+- **Error Handling**: Graceful fallbacks when API limits are reached
+
+### **Setup & Configuration**
+
+#### **OpenAI API Setup**
+1. **Create Account**: Sign up at https://platform.openai.com
+2. **Generate API Key**: Go to API Keys section and create new key
+3. **Add Billing**: Add payment method (GPT-4o-mini is very affordable)
+4. **Update Code**: Replace `'your-openai-api-key-here'` in `js/utils/constants.js`
+5. **Test Feature**: Try the AI Assistant to verify it's working
+
+#### **Security Considerations**
+- **API Key Protection**: Keep your OpenAI API key secure and private
+- **Domain Restrictions**: Consider restricting API key to your domain
+- **Usage Monitoring**: Monitor API usage in OpenAI dashboard
+- **Rate Limiting**: Built-in protections prevent excessive usage
+
+### **User Interface Design**
+
+#### **Mobile-Optimized Modal**
+- **Full-Screen Experience**: Distraction-free AI interaction
+- **Touch-Friendly**: Large buttons and easy text input
+- **Character Counter**: 500-character limit with visual feedback
+- **Loading States**: Clear feedback during AI processing
+- **Error Handling**: User-friendly error messages with retry options
+
+#### **Action Buttons**
+```html
+<!-- Three main AI functions -->
+<button class="ai-action-btn bg-braves-red">
+  <i class="fas fa-cogs"></i>
+  Suggest Drill Variations
+</button>
+
+<button class="ai-action-btn bg-braves-navy">
+  <i class="fas fa-edit"></i>
+  Auto-Fill Descriptions
+</button>
+
+<button class="ai-action-btn bg-gray-600">
+  <i class="fas fa-paper-plane"></i>
+  Summarize for Parents
+</button>
+```
+
+#### **Results Display**
+- **Organized Cards**: Each result in its own styled card
+- **Copy Buttons**: One-click copying for all generated content
+- **Action Buttons**: Direct integration with video search and practice editing
+- **Clear Formatting**: Easy-to-read results with proper spacing
+- **Mobile Responsive**: Stacks properly on mobile devices
+
+### **AI Prompt Engineering**
+
+#### **System Prompts**
+The AI Assistant uses carefully crafted system prompts to ensure appropriate, helpful responses:
+
+```javascript
+// Drill Suggestions System Prompt
+"You are a helpful 6U baseball coach assistant. When coaches describe what their team is struggling with, suggest 3 fun, simple, and effective drills to improve this. For each drill, provide a name, a short description suitable for 6-year-olds, required equipment, and a good YouTube search term."
+
+// Description Generation System Prompt  
+"You are a helpful 6U baseball coach. Generate a simple, kid-friendly description for the given drill name. The description should be appropriate for 6-year-old players, focus on fun and participation, and include basic coaching cues."
+
+// Parent Summary System Prompt
+"You are a helpful 6U baseball coach. Summarize this practice plan into a short, enthusiastic message for parents. Highlight the main skills being focused on and what their child will be learning."
+```
+
+#### **Response Formatting**
+- **Structured Output**: AI responses follow consistent formats
+- **Age-Appropriate Language**: All content suitable for 6U baseball
+- **Actionable Content**: Practical suggestions coaches can immediately use
+- **Positive Tone**: Encouraging, supportive coaching language
+
+### **Performance & Reliability**
+
+#### **Response Times**
+- **Fast Processing**: GPT-4o-mini provides quick responses (2-5 seconds)
+- **Loading Indicators**: Clear feedback during AI processing
+- **Timeout Handling**: Graceful handling of slow responses
+- **Retry Functionality**: Easy retry for failed requests
+
+#### **Error Handling**
+- **API Failures**: Clear error messages with retry options
+- **Network Issues**: Offline detection and appropriate messaging
+- **Rate Limits**: Informative messages about usage limits
+- **Invalid Responses**: Fallback handling for unexpected AI responses
+
+### **Usage Analytics**
+
+#### **Tracking Metrics**
+- **Feature Usage**: Which AI functions are used most often
+- **Success Rates**: Percentage of successful AI interactions
+- **User Satisfaction**: Implicit feedback through feature usage
+- **Cost Monitoring**: API usage and associated costs
+
+#### **Optimization Opportunities**
+- **Popular Requests**: Cache common drill suggestions
+- **User Patterns**: Optimize prompts based on usage patterns
+- **Content Quality**: Improve prompts based on user feedback
+- **Performance Tuning**: Optimize for speed and cost efficiency
+
+### **Future AI Enhancements**
+
+#### **Planned Features**
+- **Practice Plan Generation**: AI-generated complete practice plans
+- **Skill Assessment**: AI analysis of player development needs
+- **Seasonal Planning**: AI-powered curriculum progression
+- **Equipment Recommendations**: Smart equipment suggestions based on drills
+
+#### **Advanced Capabilities**
+- **Voice Input**: Speak your coaching challenges instead of typing
+- **Image Analysis**: Upload photos of drills for AI feedback
+- **Video Analysis**: AI analysis of practice videos for improvement suggestions
+- **Personalized Coaching**: AI that learns your coaching style and preferences
 
 ## 🔧 Development & Customization
 
