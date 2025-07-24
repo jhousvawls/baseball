@@ -423,6 +423,37 @@ The app includes a comprehensive component library built with Tailwind utilities
 
 ## 🚀 Deployment
 
+### **Development Workflow**
+When making changes to the application, follow this deployment process:
+
+#### **1. Git Version Control**
+```bash
+# Add all changes to staging
+git add .
+
+# Commit with descriptive message
+git commit -m "Description of changes made"
+
+# Push to remote repository
+git push origin main
+```
+
+#### **2. Firebase Deployment**
+```bash
+# Deploy to Firebase Hosting
+firebase deploy
+
+# Deploy specific services only
+firebase deploy --only hosting
+firebase deploy --only firestore:rules
+```
+
+#### **3. Verification**
+1. Check the live site at your Firebase Hosting URL
+2. Test all functionality on mobile and desktop
+3. Verify admin features work correctly
+4. Confirm video links and search functionality
+
 ### **Simple Deployment**
 1. Upload `practice-generator.html` to any web server
 2. Configure Firebase project and update config
@@ -431,10 +462,35 @@ The app includes a comprehensive component library built with Tailwind utilities
 5. Access via web browser
 
 ### **Hosting Options**
-- **Firebase Hosting**: Integrated with Firebase services
+- **Firebase Hosting**: Integrated with Firebase services (recommended)
 - **GitHub Pages**: Free static hosting
 - **Netlify**: Easy deployment with form handling
 - **Any Web Server**: Works with basic HTTP hosting
+
+### **Firebase Hosting Setup**
+```bash
+# Install Firebase CLI
+npm install -g firebase-tools
+
+# Login to Firebase
+firebase login
+
+# Initialize project
+firebase init hosting
+
+# Deploy
+firebase deploy
+```
+
+### **Deployment Checklist**
+- [ ] All changes committed to Git
+- [ ] Firebase project configured correctly
+- [ ] Firestore security rules updated
+- [ ] Authentication providers enabled
+- [ ] API keys configured and restricted
+- [ ] Live site tested on multiple devices
+- [ ] Admin functionality verified
+- [ ] Video search working properly
 
 ## 👥 Multi-Coach Admin System
 
