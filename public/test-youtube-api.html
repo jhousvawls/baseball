@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube API Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
     <h1>YouTube API Test</h1>
@@ -51,20 +52,20 @@
                     console.log('🧪 Parsed response:', data);
                 } catch (parseError) {
                     console.error('🚨 Failed to parse JSON:', parseError);
-                    resultsDiv.innerHTML = `<p style="color: red;">Failed to parse response as JSON. Raw response: ${responseText}</p>`;
+                    resultsDiv.innerHTML = `<p class="text-red-600">Failed to parse response as JSON. Raw response: ${responseText}</p>`;
                     return;
                 }
                 
                 if (response.ok && data.items) {
                     console.log('✅ API TEST SUCCESS - YouTube API is working!');
                     resultsDiv.innerHTML = `
-                        <p style="color: green;">✅ SUCCESS! Found ${data.items.length} videos</p>
+                        <p class="text-green-600">✅ SUCCESS! Found ${data.items.length} videos</p>
                         <pre>${JSON.stringify(data, null, 2)}</pre>
                     `;
                 } else {
                     console.log('❌ API TEST FAILED - Check the error details above');
                     resultsDiv.innerHTML = `
-                        <p style="color: red;">❌ FAILED</p>
+                        <p class="text-red-600">❌ FAILED</p>
                         <p>Status: ${response.status}</p>
                         <p>Error: ${data.error ? JSON.stringify(data.error, null, 2) : 'Unknown error'}</p>
                         <pre>${JSON.stringify(data, null, 2)}</pre>
@@ -73,7 +74,7 @@
             } catch (error) {
                 console.error('🚨 API TEST ERROR:', error);
                 resultsDiv.innerHTML = `
-                    <p style="color: red;">🚨 FETCH ERROR</p>
+                    <p class="text-red-600">🚨 FETCH ERROR</p>
                     <p>Error: ${error.message}</p>
                     <p>Type: ${error.name}</p>
                 `;

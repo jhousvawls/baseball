@@ -1,50 +1,92 @@
+/* CSS Custom Properties - Design System Foundation */
+:root {
+  /* Brand Colors */
+  --braves-navy: #13274F;
+  --braves-red: #CE1141;
+  --braves-red-hover: #b10e37;
+  --braves-red-light: rgba(206, 17, 65, 0.1);
+  
+  /* Z-Index Scale */
+  --z-dropdown: 1000;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-tooltip: 1060;
+  
+  /* Spacing Scale (aligned with Tailwind) */
+  --spacing-xs: 0.25rem;  /* 4px */
+  --spacing-sm: 0.5rem;   /* 8px */
+  --spacing-md: 1rem;     /* 16px */
+  --spacing-lg: 1.5rem;   /* 24px */
+  --spacing-xl: 2rem;     /* 32px */
+  
+  /* Animation Timing */
+  --transition-fast: 0.15s ease-out;
+  --transition-normal: 0.2s ease-in-out;
+  --transition-slow: 0.3s ease-in-out;
+  
+  /* Border Radius */
+  --radius-sm: 0.25rem;   /* 4px */
+  --radius-md: 0.5rem;    /* 8px */
+  --radius-lg: 0.75rem;   /* 12px */
+  --radius-xl: 1rem;      /* 16px */
+}
+
 /* Main Application Styles */
 body { 
     font-family: 'Inter', sans-serif; 
 }
 
-/* Braves Theme Colors */
+/* Braves Theme Colors - Updated to use CSS Custom Properties */
 .bg-braves-navy { 
-    background-color: #13274F; 
+    background-color: var(--braves-navy); 
 }
 
 .text-braves-navy { 
-    color: #13274F; 
+    color: var(--braves-navy); 
 }
 
 .bg-braves-red { 
-    background-color: #CE1141; 
+    background-color: var(--braves-red); 
 }
 
 .text-braves-red { 
-    color: #CE1141; 
+    color: var(--braves-red); 
 }
 
 .border-braves-red { 
-    border-color: #CE1141; 
+    border-color: var(--braves-red); 
 }
 
-/* Practice Button Styles */
+/* Additional Brand Color Utilities */
+.bg-braves-red-hover {
+    background-color: var(--braves-red-hover);
+}
+
+.focus-braves-red {
+    --tw-ring-color: var(--braves-red-light);
+}
+
+/* Practice Button Styles - Updated to use CSS Custom Properties */
 .practice-btn { 
-    transition: all 0.2s ease-in-out; 
+    transition: all var(--transition-normal); 
     border: 2px solid transparent; 
 }
 
 .practice-btn:hover { 
     transform: translateY(-2px); 
-    border-color: #CE1141; 
+    border-color: var(--braves-red); 
 }
 
 .practice-btn.active { 
-    background-color: #CE1141; 
+    background-color: var(--braves-red); 
     color: white; 
     font-weight: 700; 
-    border-color: #CE1141; 
+    border-color: var(--braves-red); 
 }
 
-/* Video Link Styles */
+/* Video Link Styles - Updated to use CSS Custom Properties */
 .video-link { 
-    transition: all 0.2s ease-in-out; 
+    transition: all var(--transition-normal); 
 }
 
 .video-link:hover { 

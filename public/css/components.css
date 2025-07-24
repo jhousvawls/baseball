@@ -17,10 +17,12 @@
     border-radius: 8px;
 }
 
-/* Video Search Dropdown Styles */
+/* Video Search Dropdown Styles - Updated Z-Index */
 .video-search-dropdown {
-    z-index: 1000;
+    z-index: var(--z-dropdown);
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 400px;
+    max-height: 300px;
 }
 
 .video-search-dropdown .video-result {
@@ -74,22 +76,22 @@
 }
 
 .video-result-btn {
-    padding: 4px 8px;
-    border-radius: 4px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
     font-size: 11px;
     font-weight: 600;
-    transition: all 0.2s ease;
+    transition: all var(--transition-normal);
     border: none;
     cursor: pointer;
 }
 
 .video-result-btn.use-btn {
-    background-color: #ce1141;
+    background-color: var(--braves-red);
     color: white;
 }
 
 .video-result-btn.use-btn:hover {
-    background-color: #b10e37;
+    background-color: var(--braves-red-hover);
 }
 
 .video-result-btn.preview-btn {
@@ -144,8 +146,8 @@
 .practice-editor-field input:focus,
 .practice-editor-field textarea:focus {
     outline: none;
-    border-color: #ce1141;
-    box-shadow: 0 0 0 3px rgba(206, 17, 65, 0.1);
+    border-color: var(--braves-red);
+    box-shadow: 0 0 0 3px var(--braves-red-light);
 }
 
 .practice-editor-field textarea {
@@ -357,7 +359,7 @@
     height: 16px;
     border: 2px solid #f3f4f6;
     border-radius: 50%;
-    border-top-color: #ce1141;
+    border-top-color: var(--braves-red);
     animation: spin 1s ease-in-out infinite;
 }
 
@@ -370,7 +372,7 @@
 /* Focus States for Accessibility */
 .find-video-btn:focus,
 .video-result-btn:focus {
-    outline: 2px solid #ce1141;
+    outline: 2px solid var(--braves-red);
     outline-offset: 2px;
 }
 

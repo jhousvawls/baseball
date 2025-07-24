@@ -73,14 +73,14 @@
         <h1>🎥 Baseball Practice Video URL Updater</h1>
         <p>This tool will update all the broken video URLs in your Firestore database with working YouTube videos for youth baseball training.</p>
         
-        <div id="status" class="status loading" style="display: none;">
+        <div id="status" class="status loading hidden">
             Updating video URLs...
         </div>
         
         <button id="updateBtn" onclick="updateVideos()">Update Video URLs</button>
         <button onclick="window.location.href='https://baseball-practice-generator.web.app'">Go to Practice Generator</button>
         
-        <div id="log" class="log" style="display: none;"></div>
+        <div id="log" class="log hidden"></div>
     </div>
 
     <script type="module">
