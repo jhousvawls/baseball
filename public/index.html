@@ -138,12 +138,72 @@
                     <button id="activity-tab" class="flex-1 py-3 px-4 text-center font-semibold text-gray-500 hover:text-braves-navy transition-colors">
                         <i class="fas fa-history mr-2"></i>Activity
                     </button>
+                    <button id="login-attempts-tab" class="flex-1 py-3 px-4 text-center font-semibold text-gray-500 hover:text-braves-navy transition-colors" style="display: none;">
+                        <i class="fas fa-shield-alt mr-2"></i>Login Attempts
+                    </button>
                 </div>
             </div>
 
             <!-- Tab Content Areas -->
             <div id="practices-content" class="space-y-4">
                 <!-- Practice cards will be generated here -->
+                
+                <!-- CSV Upload Section -->
+                <div class="bg-white rounded-xl shadow-md p-6 mt-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 class="text-lg font-bold text-braves-navy">Bulk Practice Management</h3>
+                            <p class="text-sm text-gray-600">Upload or download practice data via CSV</p>
+                        </div>
+                        <button id="download-sample-csv" class="bg-braves-navy text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-braves-red transition-all">
+                            <i class="fas fa-download mr-2"></i>Download Current Practices
+                        </button>
+                    </div>
+                    
+                    <!-- Upload Prompt -->
+                    <div id="upload-prompt" class="text-center">
+                        <div id="csv-upload-area" class="border-2 border-dashed border-gray-300 rounded-lg p-8 hover:border-braves-red hover:bg-red-50 transition-all cursor-pointer">
+                            <div class="flex flex-col items-center">
+                                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                                <h4 class="text-lg font-semibold text-gray-700 mb-2">Upload CSV File</h4>
+                                <p class="text-gray-500 mb-4">Drag and drop your CSV file here, or click to browse</p>
+                                <div class="text-sm text-gray-400">
+                                    <p>• Download current practices first to get the correct format</p>
+                                    <p>• Modify the CSV and upload to update multiple practices at once</p>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="file" id="csv-file-input" accept=".csv" class="hidden">
+                    </div>
+                    
+                    <!-- Upload Progress -->
+                    <div id="upload-progress" class="text-center hidden">
+                        <div class="flex items-center justify-center mb-4">
+                            <i class="fas fa-spinner fa-spin text-2xl text-braves-navy mr-3"></i>
+                            <span class="text-gray-700">Processing CSV file...</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Upload Results -->
+                    <div id="upload-results" class="hidden">
+                        <div id="upload-summary" class="mb-4">
+                            <!-- Summary will be populated by JavaScript -->
+                        </div>
+                        
+                        <div id="upload-errors" class="mb-4 hidden">
+                            <!-- Errors will be populated by JavaScript -->
+                        </div>
+                        
+                        <div class="flex space-x-3">
+                            <button id="confirm-upload" class="flex-1 bg-braves-red text-white py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all" disabled>
+                                <i class="fas fa-upload mr-2"></i>Confirm Upload
+                            </button>
+                            <button id="cancel-upload" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div id="coaches-content" class="hidden space-y-4">
@@ -170,6 +230,42 @@
                     <h3 class="text-lg font-bold text-braves-navy mb-4">Recent Practice Changes</h3>
                     <div id="activity-list">
                         <!-- Activity items will be generated here -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="login-attempts-content" class="hidden space-y-4">
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-braves-navy">Login Attempts Monitor</h3>
+                        <div class="flex items-center space-x-3">
+                            <button id="refresh-login-attempts" class="bg-braves-navy text-white px-3 py-2 rounded-lg text-sm hover:bg-braves-red transition-all">
+                                <i class="fas fa-sync-alt mr-1"></i>Refresh
+                            </button>
+                            <div class="text-sm text-gray-600">
+                                <span id="login-attempts-count">0</span> attempts logged
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Filter Options -->
+                    <div class="mb-4 flex flex-wrap gap-2">
+                        <button class="login-filter-btn active" data-filter="all">
+                            <i class="fas fa-list mr-1"></i>All Attempts
+                        </button>
+                        <button class="login-filter-btn" data-filter="unauthorized">
+                            <i class="fas fa-ban mr-1"></i>Unauthorized
+                        </button>
+                        <button class="login-filter-btn" data-filter="success">
+                            <i class="fas fa-check mr-1"></i>Successful
+                        </button>
+                        <button class="login-filter-btn" data-filter="auth_failed">
+                            <i class="fas fa-times mr-1"></i>Failed
+                        </button>
+                    </div>
+                    
+                    <div id="login-attempts-list">
+                        <!-- Login attempts will be generated here -->
                     </div>
                 </div>
             </div>

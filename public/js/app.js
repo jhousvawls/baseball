@@ -29,9 +29,10 @@ let currentVideoSearchTarget = null;
 let videoSearchCache = new Map();
 let authorizedCoaches = [];
 let practiceChanges = [];
+let loginAttempts = [];
 let csvUploadData = null;
 let currentMode = 'public'; // 'public' or 'admin'
-let currentAdminTab = 'practices'; // 'practices', 'coaches', 'activity'
+let currentAdminTab = 'practices'; // 'practices', 'coaches', 'activity', 'login_attempts'
 
 console.log("Firebase Initialized Successfully.");
 
@@ -254,6 +255,7 @@ async function handleAuthSuccess(user) {
             isAdmin = true;
             isSuperAdmin = true;
             console.log("Super admin user detected");
+            await logLoginAttempt(user.email, 'success', null, null, 'google');
             showAdminDashboard();
             return;
         }
@@ -264,6 +266,7 @@ async function handleAuthSuccess(user) {
             isAdmin = true;
             isSuperAdmin = false;
             console.log("Authorized coach detected");
+            await logLoginAttempt(user.email, 'success', null, null, 'google');
             await updateCoachLastLogin(user.email);
             showAdminDashboard();
             return;
@@ -274,12 +277,15 @@ async function handleAuthSuccess(user) {
             isAdmin = true;
             isSuperAdmin = true;
             console.log("Admin user detected by email pattern");
+            await logLoginAttempt(user.email, 'success', null, null, 'google');
             showAdminDashboard();
             return;
         }
         
         // If user is not authorized, show error and close modal
         console.log("User not authorized for admin access:", user.email);
+        await logLoginAttempt(user.email, 'unauthorized', 'auth/unauthorized', 'User not in authorized coaches list', 'google');
+        
         const adminModal = document.getElementById('admin-modal');
         const errorDiv = document.getElementById('admin-error');
         errorDiv.textContent = 'You are not authorized to access the admin panel. Please contact the super admin.';
@@ -1013,12 +1019,17 @@ function renderAdminPractices() {
     const container = document.getElementById('practices-content');
     if (!container) return;
     
-    // Find and preserve the CSV upload section
+    // Find and preserve the CSV upload section (only for super admins)
     const csvSection = container.querySelector('.bg-white.rounded-xl.shadow-md.p-6.mt-8');
     
     // Clear only the practice cards, not the entire container
     const practiceCards = container.querySelectorAll('.bg-white.rounded-xl.shadow-md.p-6:not(.mt-8)');
     practiceCards.forEach(card => card.remove());
+    
+    // Show CSV section for all admin users (both super admins and regular coaches)
+    if (csvSection) {
+        csvSection.style.display = 'block';
+    }
     
     // Add practice cards before the CSV section
     practices.forEach(practice => {
@@ -1535,6 +1546,27 @@ async function logPracticeChange(practiceId, practiceTitle, changeType) {
     }
 }
 
+// --- LOGIN ATTEMPTS LOGGING ---
+async function logLoginAttempt(email, status, errorCode = null, errorMessage = null, method = 'google') {
+    try {
+        const attemptData = {
+            email: email || 'unknown',
+            status: status, // 'success', 'unauthorized', 'auth_failed', 'error'
+            timestamp: new Date(),
+            userAgent: navigator.userAgent,
+            method: method, // 'google', 'email_password'
+        };
+        
+        if (errorCode) attemptData.errorCode = errorCode;
+        if (errorMessage) attemptData.errorMessage = errorMessage;
+        
+        await addDoc(collection(db, "login_attempts"), attemptData);
+        console.log('Login attempt logged:', status, email);
+    } catch (error) {
+        console.error('Error logging login attempt:', error);
+    }
+}
+
 async function loadActivity() {
     try {
         const changesRef = collection(db, "practice_changes");
@@ -1747,6 +1779,12 @@ function generateSampleCSV() {
 }
 
 function downloadSampleCSV() {
+    // Check if user is admin (both super admins and regular coaches)
+    if (!isAdmin) {
+        alert('Access denied. CSV functionality is only available to coaches.');
+        return;
+    }
+    
     try {
         const csvContent = generateSampleCSV();
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -2047,6 +2085,12 @@ function showUploadResults(validation) {
 }
 
 async function confirmCSVUpload() {
+    // Check if user is admin (both super admins and regular coaches)
+    if (!isAdmin) {
+        alert('Access denied. CSV functionality is only available to coaches.');
+        return;
+    }
+    
     if (!csvUploadData) return;
     
     const confirmBtn = document.getElementById('confirm-upload');
@@ -2242,9 +2286,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             await signInWithEmailAndPassword(auth, email, password);
+            await logLoginAttempt(email, 'success', null, null, 'email_password');
             adminModal.classList.add('hidden');
         } catch (error) {
             console.error('Login error:', error);
+            await logLoginAttempt(email, 'auth_failed', error.code, error.message, 'email_password');
             const errorDiv = document.getElementById('admin-error');
             errorDiv.textContent = error.message;
             errorDiv.classList.remove('hidden');
@@ -2406,6 +2452,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function handleCSVFile(file) {
+    // Check if user is admin (both super admins and regular coaches)
+    if (!isAdmin) {
+        alert('Access denied. CSV functionality is only available to coaches.');
+        return;
+    }
+    
     const uploadPrompt = document.getElementById('upload-prompt');
     const uploadProgress = document.getElementById('upload-progress');
     
