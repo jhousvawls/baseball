@@ -1403,6 +1403,9 @@ function renderCoaches() {
                         class="action-btn ${coach.isActive ? 'deactivate-btn' : 'activate-btn'}">
                     ${coach.isActive ? 'Deactivate' : 'Activate'}
                 </button>
+                <button onclick="sendWelcomeMessage('${coach.email}')" class="action-btn welcome-btn">
+                    <i class="fas fa-envelope mr-1"></i>Send Welcome
+                </button>
                 <button onclick="removeCoach('${coach.id}')" class="action-btn remove-btn">
                     Remove
                 </button>
@@ -3063,6 +3066,12 @@ function addAnotherCoach() {
     }, 100);
 }
 
+// --- WELCOME MESSAGE FUNCTIONALITY ---
+function sendWelcomeMessage(coachEmail) {
+    // Show the invitation modal with the coach's email
+    showCoachInvitationModal(coachEmail);
+}
+
 // Make functions globally available
 window.openVideo = openVideo;
 window.closeVideo = closeVideo;
@@ -3091,3 +3100,4 @@ window.clearAIResults = clearAIResults;
 window.copyDrillToClipboard = copyDrillToClipboard;
 window.copyDescriptionToClipboard = copyDescriptionToClipboard;
 window.copyParentSummary = copyParentSummary;
+window.sendWelcomeMessage = sendWelcomeMessage;

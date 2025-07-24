@@ -728,6 +728,15 @@
     background-color: var(--braves-red-hover);
 }
 
+.welcome-btn {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.welcome-btn:hover {
+    background-color: #2563eb;
+}
+
 /* Name Editing Styles */
 .coach-name-input {
     font-size: 18px;
