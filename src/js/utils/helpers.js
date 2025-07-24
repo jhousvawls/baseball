@@ -117,6 +117,19 @@ export function sanitizeHtml(str) {
 }
 
 /**
+ * Extract YouTube video ID from URL
+ * @param {string} url - YouTube URL
+ * @returns {string|null} - Video ID or null if invalid
+ */
+export function extractVideoId(url) {
+    if (!url) return null;
+    
+    const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+}
+
+/**
  * Format date for display
  * @param {Date|Object} date - Date object or Firestore timestamp
  * @returns {string} - Formatted date string

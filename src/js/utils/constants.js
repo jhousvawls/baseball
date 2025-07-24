@@ -1,8 +1,9 @@
 // Application Constants
+export const SUPER_ADMIN_EMAIL = 'admin@braves-practice.com';
+export const YOUTUBE_API_KEY = 'AIzaSyDbFiqPG91hq5_ie2vgVQ6ex98Cp4At52U';
+export const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3/search';
+
 export const APP_CONFIG = {
-    SUPER_ADMIN_EMAIL: 'john@ahsodesigns.com',
-    YOUTUBE_API_KEY: 'AIzaSyDbFiqPG91hq5_ie2vgVQ6ex98Cp4At52U',
-    YOUTUBE_API_BASE_URL: 'https://www.googleapis.com/youtube/v3/search',
     TEST_ADMIN_SESSION_DURATION: 24 * 60 * 60 * 1000, // 24 hours
 };
 
