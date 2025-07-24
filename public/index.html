@@ -289,6 +289,152 @@
         </div>
     </div>
 
+    <!-- Coach Invitation Modal -->
+    <div id="coach-invitation-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-auto max-h-screen overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-braves-navy">Coach Invitation</h2>
+                    <button id="close-invitation-modal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="mb-6">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-envelope text-braves-red text-2xl mr-3"></i>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">Welcome Message for:</h3>
+                            <p class="text-braves-red font-semibold" id="invitation-coach-email">coach@example.com</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-semibold text-gray-800">Ready-to-Send Message</h4>
+                            <button id="copy-invitation-btn" class="bg-braves-red text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-braves-red-hover transition-all">
+                                <i class="fas fa-copy mr-2"></i>Copy to Clipboard
+                            </button>
+                        </div>
+                        <div class="bg-white p-4 rounded border border-gray-300 max-h-64 overflow-y-auto">
+                            <pre id="invitation-text" class="text-sm text-gray-700 whitespace-pre-wrap font-mono leading-relaxed"></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                        <h5 class="font-semibold text-blue-800 mb-2">📱 How to Send</h5>
+                        <ul class="text-blue-700 text-sm space-y-1">
+                            <li>• Copy the message above</li>
+                            <li>• Send via team group chat</li>
+                            <li>• Email to the coach</li>
+                            <li>• Share through team app</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+                        <h5 class="font-semibold text-green-800 mb-2">✨ What's Included</h5>
+                        <ul class="text-green-700 text-sm space-y-1">
+                            <li>• Portal access instructions</li>
+                            <li>• Feature overview</li>
+                            <li>• Getting started guide</li>
+                            <li>• Support information</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button id="send-another-invitation" class="flex-1 bg-braves-navy text-white py-3 rounded-lg font-semibold hover:bg-braves-red transition-all">
+                        <i class="fas fa-plus mr-2"></i>Add Another Coach
+                    </button>
+                    <button id="close-invitation-done" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all">
+                        Done
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Assistant Modal -->
+    <div id="ai-assistant-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-auto max-h-screen overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-braves-navy">
+                        <i class="fas fa-robot mr-2"></i>AI Practice Assistant
+                    </h2>
+                    <button id="close-ai-modal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="mb-6">
+                    <label for="ai-input" class="block text-sm font-semibold text-gray-700 mb-2">
+                        What's your team struggling with? (Optional context)
+                    </label>
+                    <textarea id="ai-input" 
+                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-braves-red focus:border-transparent resize-none"
+                              rows="3" 
+                              maxlength="500"
+                              placeholder="e.g., 'Kids are having trouble catching fly balls' or 'Need more engaging hitting drills'"></textarea>
+                    <div class="flex justify-between items-center mt-2">
+                        <p class="text-xs text-gray-500">Provide context to get more targeted suggestions</p>
+                        <span class="text-xs text-gray-400"><span id="char-count">0</span>/500</span>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                    <button id="suggest-drills-btn" class="bg-braves-red text-white p-4 rounded-lg text-center hover:bg-braves-red-hover transition-all">
+                        <i class="fas fa-lightbulb text-2xl mb-2"></i>
+                        <div class="font-semibold">Suggest Drills</div>
+                        <div class="text-xs opacity-90">Get new drill ideas</div>
+                    </button>
+                    
+                    <button id="auto-fill-btn" class="bg-braves-navy text-white p-4 rounded-lg text-center hover:bg-braves-red transition-all">
+                        <i class="fas fa-magic text-2xl mb-2"></i>
+                        <div class="font-semibold">Auto-Fill</div>
+                        <div class="text-xs opacity-90">Generate descriptions</div>
+                    </button>
+                    
+                    <button id="summarize-btn" class="bg-green-600 text-white p-4 rounded-lg text-center hover:bg-green-700 transition-all">
+                        <i class="fas fa-share text-2xl mb-2"></i>
+                        <div class="font-semibold">Parent Summary</div>
+                        <div class="text-xs opacity-90">Create team message</div>
+                    </button>
+                </div>
+                
+                <!-- AI Results Area -->
+                <div id="ai-loading" class="hidden text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-3xl text-braves-navy mb-4"></i>
+                    <p class="text-gray-600">AI is thinking...</p>
+                </div>
+                
+                <div id="ai-error" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                    <div class="flex items-center mb-2">
+                        <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                        <span class="font-semibold text-red-800">Error</span>
+                    </div>
+                    <p id="ai-error-message" class="text-red-700 text-sm mb-3"></p>
+                    <div class="flex space-x-2">
+                        <button id="retry-ai" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-all">
+                            <i class="fas fa-redo mr-1"></i>Retry
+                        </button>
+                        <button id="clear-results" class="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition-all">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="ai-results" class="hidden">
+                    <div id="ai-results-content" class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <!-- AI results will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Application JavaScript -->
     <script type="module" src="js/app.js"></script>
 </body>

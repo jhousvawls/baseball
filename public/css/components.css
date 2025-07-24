@@ -729,12 +729,12 @@
 }
 
 .welcome-btn {
-    background-color: #3b82f6;
+    background-color: var(--braves-red);
     color: white;
 }
 
 .welcome-btn:hover {
-    background-color: #2563eb;
+    background-color: var(--braves-red-hover);
 }
 
 /* Name Editing Styles */
