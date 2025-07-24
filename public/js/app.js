@@ -664,7 +664,7 @@ function displayPractice(practiceNumber) {
     if (practice.stations && practice.stations.length > 0) {
         html += `
             <div class="mb-8">
-                <h3 class="text-xl font-bold text-braves-navy mb-4 flex items-center">
+                <h3 class="text-xl font-bold text-braves-navy mb-2 flex items-center">
                     <i class="fas fa-baseball-ball mr-3 text-braves-red"></i>
                     Skill Stations (${practice.stationTime} mins)
                 </h3>
