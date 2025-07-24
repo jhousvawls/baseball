@@ -647,13 +647,14 @@ function displayPractice(practiceNumber) {
     // Warm-up section
     if (practice.warmup) {
         html += `
-            <div class="mb-8">
-                <h3 class="text-xl font-bold text-braves-navy mb-4 flex items-center">
-                    <i class="fas fa-running mr-3 text-braves-red"></i>
-                    ${practice.warmup.title} (${practice.warmup.duration} mins)
-                </h3>
-                <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
-                    <p class="text-blue-800">${practice.warmup.desc}</p>
+            <div class="practice-section">
+                <div class="section-header">
+                    <i class="fas fa-running section-icon"></i>
+                    <h3 class="section-title">${practice.warmup.title}</h3>
+                    <span class="section-duration">${practice.warmup.duration} mins</span>
+                </div>
+                <div class="section-content">
+                    <p class="section-description">${practice.warmup.desc}</p>
                 </div>
             </div>
         `;
@@ -693,13 +694,14 @@ function displayPractice(practiceNumber) {
     // Fun Finisher section
     if (practice.finisher) {
         html += `
-            <div class="mb-8">
-                <h3 class="text-xl font-bold text-braves-navy mb-4 flex items-center">
-                    <i class="fas fa-trophy mr-3 text-braves-red"></i>
-                    ${practice.finisher.title} (${practice.finisher.duration} mins)
-                </h3>
-                <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
-                    <p class="text-yellow-800">${practice.finisher.desc}</p>
+            <div class="practice-section">
+                <div class="section-header">
+                    <i class="fas fa-trophy section-icon"></i>
+                    <h3 class="section-title">${practice.finisher.title}</h3>
+                    <span class="section-duration">${practice.finisher.duration} mins</span>
+                </div>
+                <div class="section-content">
+                    <p class="section-description">${practice.finisher.desc}</p>
                 </div>
             </div>
         `;
@@ -708,13 +710,14 @@ function displayPractice(practiceNumber) {
     // Wrap-up section
     if (practice.wrapup) {
         html += `
-            <div class="mb-8">
-                <h3 class="text-xl font-bold text-braves-navy mb-4 flex items-center">
-                    <i class="fas fa-users mr-3 text-braves-red"></i>
-                    ${practice.wrapup.title} (${practice.wrapup.duration} mins)
-                </h3>
-                <div class="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
-                    <p class="text-green-800">${practice.wrapup.desc}</p>
+            <div class="practice-section">
+                <div class="section-header">
+                    <i class="fas fa-users section-icon"></i>
+                    <h3 class="section-title">${practice.wrapup.title}</h3>
+                    <span class="section-duration">${practice.wrapup.duration} mins</span>
+                </div>
+                <div class="section-content">
+                    <p class="section-description">${practice.wrapup.desc}</p>
                 </div>
             </div>
         `;
