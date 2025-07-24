@@ -192,14 +192,14 @@ async function seedDatabase() {
         {
             id: 1,
             title: "First Steps",
-            totalTime: 45,
+            totalTime: 60,
             warmup: {
                 title: "Welcome Circle",
                 desc: "Gather players in a circle. Introduce coaches and players. Explain what baseball is and what we'll do today. Practice saying 'Good job!' and giving high-fives.",
                 duration: 5
             },
-            stationTime: 25,
-            stationInstructions: "Split into 4 groups. Spend 6 minutes at each station. Focus on fun and participation over perfection.",
+            stationTime: 40,
+            stationInstructions: "Split into 4 groups. Spend 10 minutes at each station. Focus on fun and participation over perfection.",
             stations: [
                 {
                     name: "Alligator Chomps",
@@ -225,12 +225,12 @@ async function seedDatabase() {
             finisher: {
                 title: "Home Run Derby",
                 desc: "Every player gets to hit until they get a 'home run' (any ball that goes past the pitcher). Celebrate each home run with team cheers and high-fives all around.",
-                duration: 8
+                duration: 10
             },
             wrapup: {
                 title: "Circle Time",
                 desc: "Gather in circle. Ask each player what their favorite part was. Give out stickers or stamps. Remind them when next practice is and that they're all baseball players now!",
-                duration: 2
+                duration: 5
             },
             homework: {
                 title: "Play Catch with Family",
@@ -241,14 +241,14 @@ async function seedDatabase() {
         {
             id: 2,
             title: "Building Basics",
-            totalTime: 50,
+            totalTime: 60,
             warmup: {
                 title: "Baseball Simon Says",
                 desc: "Play Simon Says with baseball actions: 'Simon says swing your bat', 'Simon says catch a fly ball', 'Simon says run to first base'. Gets players moving and thinking baseball.",
                 duration: 5
             },
-            stationTime: 30,
-            stationInstructions: "4 stations, 7 minutes each. Add more challenge while keeping it fun. Encourage players to help each other.",
+            stationTime: 40,
+            stationInstructions: "4 stations, 10 minutes each. Add more challenge while keeping it fun. Encourage players to help each other.",
             stations: [
                 {
                     name: "Bucket Catches",
@@ -290,14 +290,14 @@ async function seedDatabase() {
         {
             id: 3,
             title: "Making Connections",
-            totalTime: 55,
+            totalTime: 60,
             warmup: {
                 title: "Partner Stretches",
                 desc: "Pair up players for simple stretches. Arm circles, toe touches, gentle twists. Partners help count to 10. Builds teamwork and gets bodies ready for activity.",
                 duration: 5
             },
-            stationTime: 35,
-            stationInstructions: "4 stations, 8 minutes each. Focus on connecting skills together. Players should start seeing how catching, throwing, and hitting work together.",
+            stationTime: 40,
+            stationInstructions: "4 stations, 10 minutes each. Focus on connecting skills together. Players should start seeing how catching, throwing, and hitting work together.",
             stations: [
                 {
                     name: "Catch and Throw",
@@ -437,14 +437,14 @@ async function seedDatabase() {
         {
             id: 6,
             title: "Team Play",
-            totalTime: 65,
+            totalTime: 60,
             warmup: {
                 title: "Team Building Circle",
                 desc: "Players stand in circle and share one thing they like about the teammate to their right. Builds team chemistry and positive communication.",
                 duration: 5
             },
-            stationTime: 45,
-            stationInstructions: "4 stations, 11 minutes each. Focus on working together and understanding team concepts. Introduce more game-like situations.",
+            stationTime: 40,
+            stationInstructions: "4 stations, 10 minutes each. Focus on working together and understanding team concepts. Introduce more game-like situations.",
             stations: [
                 {
                     name: "Relay Races",
@@ -486,14 +486,14 @@ async function seedDatabase() {
         {
             id: 7,
             title: "Game Situations",
-            totalTime: 65,
+            totalTime: 60,
             warmup: {
                 title: "Situation Stretches",
                 desc: "Stretch while discussing game situations: 'Stretch like you're reaching for a high fly ball', 'Bend like you're fielding a ground ball'. Combines physical and mental preparation.",
                 duration: 5
             },
-            stationTime: 45,
-            stationInstructions: "4 stations, 11 minutes each. Practice real game situations. Players should start thinking like baseball players and making decisions.",
+            stationTime: 40,
+            stationInstructions: "4 stations, 10 minutes each. Practice real game situations. Players should start thinking like baseball players and making decisions.",
             stations: [
                 {
                     name: "Rundown Drills",
@@ -535,14 +535,14 @@ async function seedDatabase() {
         {
             id: 8,
             title: "Championship Ready",
-            totalTime: 70,
+            totalTime: 60,
             warmup: {
                 title: "Championship Warm-up",
                 desc: "Full team warm-up like the big leagues: jogging, arm circles, practice swings, fielding positions. Players should feel like real baseball players preparing for a big game.",
                 duration: 5
             },
-            stationTime: 50,
-            stationInstructions: "4 stations, 12 minutes each. Put it all together. Players should demonstrate all skills learned and show confidence in game situations.",
+            stationTime: 40,
+            stationInstructions: "4 stations, 10 minutes each. Put it all together. Players should demonstrate all skills learned and show confidence in game situations.",
             stations: [
                 {
                     name: "Advanced Fielding",
