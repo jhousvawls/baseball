@@ -28,6 +28,7 @@ let currentVideoSearchTarget = null;
 let videoSearchCache = new Map();
 let authorizedCoaches = [];
 let practiceChanges = [];
+let csvUploadData = null;
 
 console.log("Firebase Initialized Successfully.");
 
@@ -1405,6 +1406,438 @@ function closeVideoSearch() {
     currentVideoSearchTarget = null;
 }
 
+// --- CSV UPLOAD FUNCTIONALITY ---
+function generateSampleCSV() {
+    const headers = [
+        'id', 'title', 'totalTime',
+        'warmup_title', 'warmup_desc', 'warmup_duration',
+        'stationTime', 'stationInstructions',
+        'station1_name', 'station1_desc', 'station1_video',
+        'station2_name', 'station2_desc', 'station2_video',
+        'station3_name', 'station3_desc', 'station3_video',
+        'station4_name', 'station4_desc', 'station4_video',
+        'finisher_title', 'finisher_desc', 'finisher_duration',
+        'wrapup_title', 'wrapup_desc', 'wrapup_duration',
+        'homework_title', 'homework_desc', 'homework_video'
+    ];
+    
+    const rows = [headers];
+    
+    // Add current practice data
+    practices.forEach(practice => {
+        const row = [
+            practice.id,
+            practice.title,
+            practice.totalTime,
+            practice.warmup?.title || '',
+            practice.warmup?.desc || '',
+            practice.warmup?.duration || 5,
+            practice.stationTime || 35,
+            practice.stationInstructions || '',
+            practice.stations?.[0]?.name || '',
+            practice.stations?.[0]?.desc || '',
+            practice.stations?.[0]?.video || '',
+            practice.stations?.[1]?.name || '',
+            practice.stations?.[1]?.desc || '',
+            practice.stations?.[1]?.video || '',
+            practice.stations?.[2]?.name || '',
+            practice.stations?.[2]?.desc || '',
+            practice.stations?.[2]?.video || '',
+            practice.stations?.[3]?.name || '',
+            practice.stations?.[3]?.desc || '',
+            practice.stations?.[3]?.video || '',
+            practice.finisher?.title || '',
+            practice.finisher?.desc || '',
+            practice.finisher?.duration || 15,
+            practice.wrapup?.title || '',
+            practice.wrapup?.desc || '',
+            practice.wrapup?.duration || 5,
+            practice.homework?.title || '',
+            practice.homework?.desc || '',
+            practice.homework?.video || ''
+        ];
+        rows.push(row);
+    });
+    
+    return rows.map(row => 
+        row.map(cell => {
+            // Escape quotes and wrap in quotes if contains comma, quote, or newline
+            const cellStr = String(cell || '');
+            if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+                return '"' + cellStr.replace(/"/g, '""') + '"';
+            }
+            return cellStr;
+        }).join(',')
+    ).join('\n');
+}
+
+function downloadSampleCSV() {
+    try {
+        const csvContent = generateSampleCSV();
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'baseball_practices_sample.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    } catch (error) {
+        console.error('Error generating CSV:', error);
+        alert('Error generating sample CSV. Please try again.');
+    }
+}
+
+function parseCSV(csvText) {
+    const lines = [];
+    let currentLine = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < csvText.length; i++) {
+        const char = csvText[i];
+        const nextChar = csvText[i + 1];
+        
+        if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+                currentLine += '"';
+                i++; // Skip next quote
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (char === '\n' && !inQuotes) {
+            if (currentLine.trim()) {
+                lines.push(currentLine);
+            }
+            currentLine = '';
+        } else {
+            currentLine += char;
+        }
+    }
+    
+    if (currentLine.trim()) {
+        lines.push(currentLine);
+    }
+    
+    return lines.map(line => {
+        const fields = [];
+        let currentField = '';
+        let inQuotes = false;
+        
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            const nextChar = line[i + 1];
+            
+            if (char === '"') {
+                if (inQuotes && nextChar === '"') {
+                    currentField += '"';
+                    i++; // Skip next quote
+                } else {
+                    inQuotes = !inQuotes;
+                }
+            } else if (char === ',' && !inQuotes) {
+                fields.push(currentField);
+                currentField = '';
+            } else {
+                currentField += char;
+            }
+        }
+        
+        fields.push(currentField);
+        return fields;
+    });
+}
+
+function validateCSVData(data) {
+    const errors = [];
+    const warnings = [];
+    
+    if (data.length < 2) {
+        errors.push('CSV must contain at least a header row and one data row');
+        return { errors, warnings, validPractices: [] };
+    }
+    
+    const headers = data[0];
+    const expectedHeaders = [
+        'id', 'title', 'totalTime',
+        'warmup_title', 'warmup_desc', 'warmup_duration',
+        'stationTime', 'stationInstructions',
+        'station1_name', 'station1_desc', 'station1_video',
+        'station2_name', 'station2_desc', 'station2_video',
+        'station3_name', 'station3_desc', 'station3_video',
+        'station4_name', 'station4_desc', 'station4_video',
+        'finisher_title', 'finisher_desc', 'finisher_duration',
+        'wrapup_title', 'wrapup_desc', 'wrapup_duration',
+        'homework_title', 'homework_desc', 'homework_video'
+    ];
+    
+    // Check for missing required headers
+    const missingHeaders = expectedHeaders.filter(header => !headers.includes(header));
+    if (missingHeaders.length > 0) {
+        errors.push(`Missing required columns: ${missingHeaders.join(', ')}`);
+    }
+    
+    const validPractices = [];
+    
+    // Validate each practice row
+    for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        const practice = {};
+        
+        // Map CSV columns to practice object
+        headers.forEach((header, index) => {
+            const value = row[index] || '';
+            
+            switch (header) {
+                case 'id':
+                    practice.id = parseInt(value);
+                    if (isNaN(practice.id) || practice.id < 1 || practice.id > 8) {
+                        errors.push(`Row ${i + 1}: Invalid practice ID "${value}". Must be 1-8.`);
+                    }
+                    break;
+                case 'title':
+                    practice.title = value.trim();
+                    if (!practice.title) {
+                        errors.push(`Row ${i + 1}: Practice title is required.`);
+                    }
+                    break;
+                case 'totalTime':
+                    practice.totalTime = parseInt(value);
+                    if (isNaN(practice.totalTime) || practice.totalTime < 30 || practice.totalTime > 120) {
+                        warnings.push(`Row ${i + 1}: Total time "${value}" seems unusual. Expected 30-120 minutes.`);
+                    }
+                    break;
+                case 'warmup_title':
+                    practice.warmup = practice.warmup || {};
+                    practice.warmup.title = value.trim();
+                    break;
+                case 'warmup_desc':
+                    practice.warmup = practice.warmup || {};
+                    practice.warmup.desc = value.trim();
+                    break;
+                case 'warmup_duration':
+                    practice.warmup = practice.warmup || {};
+                    practice.warmup.duration = parseInt(value) || 5;
+                    break;
+                case 'stationTime':
+                    practice.stationTime = parseInt(value) || 35;
+                    break;
+                case 'stationInstructions':
+                    practice.stationInstructions = value.trim();
+                    break;
+                case 'finisher_title':
+                    practice.finisher = practice.finisher || {};
+                    practice.finisher.title = value.trim();
+                    break;
+                case 'finisher_desc':
+                    practice.finisher = practice.finisher || {};
+                    practice.finisher.desc = value.trim();
+                    break;
+                case 'finisher_duration':
+                    practice.finisher = practice.finisher || {};
+                    practice.finisher.duration = parseInt(value) || 15;
+                    break;
+                case 'wrapup_title':
+                    practice.wrapup = practice.wrapup || {};
+                    practice.wrapup.title = value.trim();
+                    break;
+                case 'wrapup_desc':
+                    practice.wrapup = practice.wrapup || {};
+                    practice.wrapup.desc = value.trim();
+                    break;
+                case 'wrapup_duration':
+                    practice.wrapup = practice.wrapup || {};
+                    practice.wrapup.duration = parseInt(value) || 5;
+                    break;
+                case 'homework_title':
+                    practice.homework = practice.homework || {};
+                    practice.homework.title = value.trim();
+                    break;
+                case 'homework_desc':
+                    practice.homework = practice.homework || {};
+                    practice.homework.desc = value.trim();
+                    break;
+                case 'homework_video':
+                    practice.homework = practice.homework || {};
+                    practice.homework.video = value.trim();
+                    break;
+                default:
+                    // Handle station fields
+                    if (header.startsWith('station')) {
+                        const match = header.match(/station(\d+)_(.+)/);
+                        if (match) {
+                            const stationIndex = parseInt(match[1]) - 1;
+                            const field = match[2];
+                            
+                            practice.stations = practice.stations || [{}, {}, {}, {}];
+                            practice.stations[stationIndex] = practice.stations[stationIndex] || {};
+                            practice.stations[stationIndex][field] = value.trim();
+                        }
+                    }
+                    break;
+            }
+        });
+        
+        // Ensure stations array is complete
+        if (practice.stations) {
+            for (let j = 0; j < 4; j++) {
+                if (!practice.stations[j]) {
+                    practice.stations[j] = { name: '', desc: '', video: '' };
+                }
+            }
+        }
+        
+        validPractices.push(practice);
+    }
+    
+    return { errors, warnings, validPractices };
+}
+
+async function processCSVUpload(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+            try {
+                const csvText = e.target.result;
+                const data = parseCSV(csvText);
+                const validation = validateCSVData(data);
+                resolve(validation);
+            } catch (error) {
+                reject(error);
+            }
+        };
+        
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsText(file);
+    });
+}
+
+function showUploadResults(validation) {
+    const resultsDiv = document.getElementById('upload-results');
+    const summaryDiv = document.getElementById('upload-summary');
+    const errorsDiv = document.getElementById('upload-errors');
+    
+    resultsDiv.classList.remove('hidden');
+    
+    const { errors, warnings, validPractices } = validation;
+    
+    if (errors.length > 0) {
+        summaryDiv.className = 'p-3 rounded-lg bg-red-100 border border-red-300';
+        summaryDiv.innerHTML = `
+            <div class="flex items-center mb-2">
+                <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>
+                <span class="font-semibold text-red-800">Validation Failed</span>
+            </div>
+            <p class="text-red-700 text-sm">Please fix the following errors before uploading:</p>
+        `;
+        
+        errorsDiv.innerHTML = `
+            <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                <ul class="text-sm text-red-700 space-y-1">
+                    ${errors.map(error => `<li>• ${error}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+        errorsDiv.classList.remove('hidden');
+        
+        document.getElementById('confirm-upload').disabled = true;
+    } else {
+        summaryDiv.className = 'p-3 rounded-lg bg-green-100 border border-green-300';
+        summaryDiv.innerHTML = `
+            <div class="flex items-center mb-2">
+                <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                <span class="font-semibold text-green-800">Ready to Upload</span>
+            </div>
+            <p class="text-green-700 text-sm">Found ${validPractices.length} valid practices to update.</p>
+            ${warnings.length > 0 ? `
+                <div class="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                    <p class="text-yellow-800 text-xs font-semibold mb-1">Warnings:</p>
+                    <ul class="text-xs text-yellow-700 space-y-1">
+                        ${warnings.map(warning => `<li>• ${warning}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+        `;
+        
+        errorsDiv.classList.add('hidden');
+        document.getElementById('confirm-upload').disabled = false;
+        
+        // Store validated data for upload
+        csvUploadData = validPractices;
+    }
+}
+
+async function confirmCSVUpload() {
+    if (!csvUploadData) return;
+    
+    const confirmBtn = document.getElementById('confirm-upload');
+    const originalText = confirmBtn.innerHTML;
+    
+    try {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Uploading...';
+        
+        let updateCount = 0;
+        
+        for (const practiceData of csvUploadData) {
+            // Find existing practice
+            const existingPractice = practices.find(p => p.id === practiceData.id);
+            if (!existingPractice) continue;
+            
+            // Merge with existing data and add tracking
+            const updatedPractice = {
+                ...existingPractice,
+                ...practiceData,
+                lastUpdatedAt: new Date(),
+                lastUpdatedBy: currentUser?.displayName || currentUser?.email || 'CSV Upload'
+            };
+            
+            // Update in Firestore
+            await updateDoc(doc(db, "practices", existingPractice.docId), updatedPractice);
+            
+            // Log the change
+            await logPracticeChange(practiceData.id, practiceData.title, 'bulk_updated');
+            
+            updateCount++;
+        }
+        
+        // Show success message
+        const summaryDiv = document.getElementById('upload-summary');
+        summaryDiv.className = 'p-3 rounded-lg bg-blue-100 border border-blue-300';
+        summaryDiv.innerHTML = `
+            <div class="flex items-center mb-2">
+                <i class="fas fa-check-circle text-blue-600 mr-2"></i>
+                <span class="font-semibold text-blue-800">Upload Complete!</span>
+            </div>
+            <p class="text-blue-700 text-sm">Successfully updated ${updateCount} practices.</p>
+        `;
+        
+        // Reset upload state
+        setTimeout(() => {
+            resetCSVUpload();
+        }, 3000);
+        
+    } catch (error) {
+        console.error('Error uploading CSV data:', error);
+        alert('Error uploading practices. Please try again.');
+    } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = originalText;
+    }
+}
+
+function resetCSVUpload() {
+    csvUploadData = null;
+    document.getElementById('upload-results').classList.add('hidden');
+    document.getElementById('upload-prompt').classList.remove('hidden');
+    document.getElementById('upload-progress').classList.add('hidden');
+    document.getElementById('csv-file-input').value = '';
+}
+
 // --- UTILITY FUNCTIONS ---
 function printPractice() {
     window.print();
@@ -1590,7 +2023,68 @@ document.addEventListener('DOMContentLoaded', () => {
             closeVideoSearch();
         }
     });
+    
+    // CSV Upload event listeners
+    document.getElementById('download-sample-csv')?.addEventListener('click', downloadSampleCSV);
+    
+    const csvUploadArea = document.getElementById('csv-upload-area');
+    const csvFileInput = document.getElementById('csv-file-input');
+    
+    csvUploadArea?.addEventListener('click', () => {
+        csvFileInput?.click();
+    });
+    
+    csvUploadArea?.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        csvUploadArea.classList.add('border-braves-red', 'bg-red-50');
+    });
+    
+    csvUploadArea?.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        csvUploadArea.classList.remove('border-braves-red', 'bg-red-50');
+    });
+    
+    csvUploadArea?.addEventListener('drop', (e) => {
+        e.preventDefault();
+        csvUploadArea.classList.remove('border-braves-red', 'bg-red-50');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0 && files[0].type === 'text/csv') {
+            handleCSVFile(files[0]);
+        } else {
+            alert('Please drop a valid CSV file.');
+        }
+    });
+    
+    csvFileInput?.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            handleCSVFile(file);
+        }
+    });
+    
+    document.getElementById('confirm-upload')?.addEventListener('click', confirmCSVUpload);
+    document.getElementById('cancel-upload')?.addEventListener('click', resetCSVUpload);
 });
+
+async function handleCSVFile(file) {
+    const uploadPrompt = document.getElementById('upload-prompt');
+    const uploadProgress = document.getElementById('upload-progress');
+    
+    uploadPrompt.classList.add('hidden');
+    uploadProgress.classList.remove('hidden');
+    
+    try {
+        const validation = await processCSVUpload(file);
+        showUploadResults(validation);
+    } catch (error) {
+        console.error('Error processing CSV:', error);
+        alert('Error processing CSV file. Please check the format and try again.');
+        resetCSVUpload();
+    } finally {
+        uploadProgress.classList.add('hidden');
+    }
+}
 
 // --- PROFILE MANAGEMENT FUNCTIONS ---
 function getInitials(name) {

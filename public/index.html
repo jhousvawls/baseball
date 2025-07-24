@@ -149,6 +149,59 @@
             <!-- Tab Content Areas -->
             <div id="practices-content" class="space-y-4">
                 <!-- Practice cards will be generated here -->
+                
+                <!-- CSV Bulk Upload Section -->
+                <div class="bg-white rounded-xl shadow-md p-6 mt-8">
+                    <h3 class="text-lg font-bold text-braves-navy mb-4 flex items-center">
+                        <i class="fas fa-upload mr-3 text-braves-red"></i>
+                        Bulk Upload Practices (CSV)
+                    </h3>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Sample CSV Download -->
+                        <div class="space-y-3">
+                            <h4 class="font-semibold text-gray-800">1. Download Sample CSV</h4>
+                            <p class="text-sm text-gray-600">Get a CSV template with current practice data to edit in Excel or Google Sheets.</p>
+                            <button id="download-sample-csv" class="bg-braves-navy text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-braves-red transition-all">
+                                <i class="fas fa-download mr-2"></i>Download Sample CSV
+                            </button>
+                        </div>
+                        
+                        <!-- CSV Upload -->
+                        <div class="space-y-3">
+                            <h4 class="font-semibold text-gray-800">2. Upload Modified CSV</h4>
+                            <p class="text-sm text-gray-600">Upload your edited CSV file to update all practices at once.</p>
+                            
+                            <!-- File Upload Area -->
+                            <div id="csv-upload-area" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-braves-red transition-colors cursor-pointer">
+                                <input type="file" id="csv-file-input" accept=".csv" class="hidden">
+                                <div id="upload-prompt">
+                                    <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                                    <p class="text-gray-600 font-medium">Click to select CSV file</p>
+                                    <p class="text-sm text-gray-500">or drag and drop here</p>
+                                </div>
+                                <div id="upload-progress" class="hidden">
+                                    <i class="fas fa-spinner fa-spin text-braves-navy text-2xl mb-2"></i>
+                                    <p class="text-braves-navy font-medium">Processing CSV...</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Upload Results -->
+                            <div id="upload-results" class="hidden space-y-3">
+                                <div id="upload-summary" class="p-3 rounded-lg"></div>
+                                <div id="upload-errors" class="hidden"></div>
+                                <div class="flex space-x-3">
+                                    <button id="confirm-upload" class="bg-braves-red text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-opacity-90 transition-all">
+                                        <i class="fas fa-check mr-2"></i>Apply Changes
+                                    </button>
+                                    <button id="cancel-upload" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all text-sm">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div id="coaches-content" class="hidden space-y-4">
