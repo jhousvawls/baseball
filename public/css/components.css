@@ -166,7 +166,7 @@
 }
 
 .find-video-btn {
-    background-color: #3b82f6;
+    background-color: var(--braves-navy);
     color: white;
     border: none;
     padding: 10px 16px;
@@ -179,7 +179,7 @@
 }
 
 .find-video-btn:hover {
-    background-color: #2563eb;
+    background-color: var(--braves-red);
 }
 
 .find-video-btn:disabled {

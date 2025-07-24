@@ -279,7 +279,7 @@
   }
   
   .modal-footer {
-    @apply flex space-x-3 p-6 border-t border-gray-200;
+    @apply flex space-x-3 p-6 border-t border-gray-200 rounded-b-xl;
   }
   
   .modal-fullscreen {
