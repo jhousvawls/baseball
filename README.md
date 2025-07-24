@@ -271,6 +271,7 @@ The application uses a modern CSS architecture with:
 - **Tailwind CSS**: Utility-first framework via CDN
 - **Component-Based Styles**: Organized by component functionality
 - **Zero Inline Styles**: All styling managed through CSS classes
+- **Tailwind Component Library**: 50+ custom component classes for consistency
 
 ### **Design System**
 ```css
@@ -292,13 +293,100 @@ The application uses a modern CSS architecture with:
 --transition-slow: 0.3s ease-in-out;
 ```
 
-### **CSS Classes**
+### **Tailwind Component System**
+The app includes a comprehensive component library built with Tailwind utilities:
+
+#### **Button System**
+```html
+<button class="btn-primary">Save Changes</button>
+<button class="btn-secondary btn-sm">Cancel</button>
+<button class="btn-ghost">Close</button>
+<button class="btn-danger">Delete</button>
+<button class="btn-icon"><i class="fas fa-cog"></i></button>
+```
+
+#### **Card Components**
+```html
+<div class="card-practice">
+  <div class="practice-header">
+    <h3 class="practice-title">Practice 1</h3>
+    <span class="practice-duration">45 min</span>
+  </div>
+</div>
+
+<div class="card-admin">
+  <div class="admin-card-header">
+    <h4>Admin Section</h4>
+    <button class="btn-ghost btn-sm">Edit</button>
+  </div>
+</div>
+```
+
+#### **Practice Blocks**
+```html
+<div class="practice-section">
+  <div class="section-header">
+    <i class="section-icon fas fa-running"></i>
+    <h4 class="section-title">Warmup</h4>
+    <span class="section-duration">5 min</span>
+  </div>
+</div>
+
+<div class="station-block">
+  <div class="station-header">
+    <h5 class="station-title">Station 1: Hitting</h5>
+    <a href="#" class="station-video">Watch Video</a>
+  </div>
+</div>
+```
+
+#### **Navigation**
+```html
+<div class="nav-tabs">
+  <button class="nav-tab nav-tab-active">Practices</button>
+  <button class="nav-tab">Coaches</button>
+</div>
+
+<div class="practice-selector">
+  <button class="practice-btn practice-btn-active">1</button>
+  <button class="practice-btn">2</button>
+</div>
+```
+
+#### **Forms**
+```html
+<div class="form-field">
+  <label class="form-label">Title</label>
+  <input class="form-input" type="text">
+  <p class="form-help">Helper text</p>
+</div>
+
+<div class="input-group">
+  <input class="form-input" type="url">
+  <button class="btn-secondary btn-sm">Find Videos</button>
+</div>
+```
+
+#### **States & Feedback**
+```html
+<div class="alert alert-success">Success message</div>
+<div class="alert alert-error">Error message</div>
+<span class="badge badge-success">Active</span>
+<div class="loading-spinner"></div>
+```
+
+### **Style Guide Documentation**
+- **Complete Guide**: See `TAILWIND_STYLE_GUIDE.md` for comprehensive documentation
+- **Live Demo**: Open `tailwind-demo.html` to see all components in action
+- **Component CSS**: All classes defined in `css/tailwind-components.css`
+
+### **Legacy CSS Classes**
 - `.bg-braves-navy`: Navy background using CSS custom properties
 - `.text-braves-navy`: Navy text using CSS custom properties
 - `.bg-braves-red`: Red background using CSS custom properties
 - `.text-braves-red`: Red text using CSS custom properties
-- `.practice-btn`: Animated practice selector buttons
-- `.video-link`: Styled video link buttons
+- `.practice-btn`: Animated practice selector buttons (legacy)
+- `.video-link`: Styled video link buttons (legacy)
 - `.animate-fade-in`: Smooth content transitions
 - `.video-search-dropdown`: Positioned video search modal
 
