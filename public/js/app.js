@@ -844,7 +844,7 @@ function renderAdminPractices() {
                 </div>
                 <div class="flex space-x-2">
                     <button onclick="openAIAssistant('${practice.docId}')" 
-                            class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-2 rounded-lg text-sm hover:from-purple-600 hover:to-pink-600 transition-all">
+                            class="bg-braves-navy-100 text-braves-navy px-3 py-2 rounded-lg text-sm hover:bg-braves-navy hover:text-white transition-all">
                         <i class="fas fa-sparkles mr-1"></i>AI Assistant
                     </button>
                     <button onclick="editPractice('${practice.docId}')" 
