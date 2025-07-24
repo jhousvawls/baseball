@@ -17,6 +17,7 @@ A comprehensive, mobile-first web application for managing 6U baseball practice 
 - **Super Admin Controls**: Create and manage coach accounts
 - **Coach Management Panel**: Add, remove, and manage up to 8 coaches
 - **Activity Tracking**: See who made what changes and when
+- **Login Attempts Monitoring**: Track and troubleshoot registration issues
 - **Real-time Collaboration**: All coaches can edit practices simultaneously
 - **Mobile-First Design**: Touch-friendly editing optimized for phones
 - **Complete Content Control**: Edit all practice sections, titles, descriptions, and videos
@@ -601,6 +602,105 @@ function filterVideoResults(videos) {
 - **Video Length**: More granular duration controls
 - **Equipment Needed**: Filter by required equipment (tees, cones, etc.)
 - **Coach Ratings**: Community-driven video quality ratings
+
+## 🔐 Login Attempts Monitoring
+
+### **Overview**
+The Login Attempts Monitoring system provides super administrators with comprehensive visibility into all authentication attempts, helping quickly diagnose and resolve registration issues when new coaches can't access the system.
+
+### **Key Features**
+- **Comprehensive Logging**: Automatically logs every authentication attempt
+- **Real-time Monitoring**: View attempts as they happen through the admin dashboard
+- **Detailed Information**: Captures email addresses, timestamps, error codes, and user agents
+- **Smart Filtering**: Filter attempts by status (All, Unauthorized, Successful, Failed)
+- **Super Admin Only**: Secure access restricted to super administrators
+
+### **What Gets Logged**
+
+#### **Successful Logins**
+- Super admin and regular coach sign-ins
+- Both Google authentication and email/password methods
+- Timestamp and user information
+
+#### **Unauthorized Attempts**
+- Users trying to sign in who aren't in the authorized coaches list
+- Email addresses of people attempting to register
+- Specific error details for troubleshooting
+
+#### **Authentication Failures**
+- Wrong passwords or invalid credentials
+- Google sign-in errors and popup issues
+- Network connectivity problems
+
+### **Data Structure**
+```javascript
+{
+  email: "user@example.com",
+  status: "unauthorized", // 'success', 'unauthorized', 'auth_failed', 'error'
+  timestamp: Date,
+  userAgent: "Mozilla/5.0...",
+  method: "google", // 'google' or 'email_password'
+  errorCode: "auth/unauthorized",
+  errorMessage: "User not in authorized coaches list"
+}
+```
+
+### **How to Use**
+
+#### **Accessing the Monitor**
+1. Sign in as super admin
+2. Go to admin dashboard
+3. Click "Login Attempts" tab (only visible to super admins)
+4. View real-time list of all authentication attempts
+
+#### **Troubleshooting Registration Issues**
+When someone reports they can't register:
+1. Check the Login Attempts tab
+2. Look for their email address in recent attempts
+3. See the specific error that occurred
+4. Take appropriate action:
+   - Add them to authorized coaches list
+   - Help them use the correct email
+   - Troubleshoot authentication issues
+
+#### **Filter Options**
+- **All Attempts**: View complete history
+- **Unauthorized**: Focus on users trying to register without permission
+- **Successful**: See who has successfully logged in
+- **Failed**: Identify authentication problems
+
+### **Security & Privacy**
+- **Super Admin Only**: Regular coaches cannot view login attempts
+- **Secure Storage**: All data stored in protected Firestore collection
+- **No Sensitive Data**: Passwords and tokens are never logged
+- **Automatic Cleanup**: Consider implementing data retention policies
+
+### **Common Use Cases**
+
+#### **New Coach Can't Register**
+1. Coach reports they can't sign in
+2. Check Login Attempts for their email
+3. See "unauthorized" status
+4. Add their email to authorized coaches list
+5. Coach can now sign in successfully
+
+#### **Authentication Troubleshooting**
+1. Coach reports sign-in errors
+2. View their failed attempts with error codes
+3. Identify specific issue (wrong email, popup blocked, etc.)
+4. Provide targeted assistance
+
+#### **Security Monitoring**
+1. Monitor for suspicious login attempts
+2. Identify unauthorized access attempts
+3. Track successful coach logins
+4. Maintain audit trail for security
+
+### **Future Enhancements**
+- **Email Notifications**: Alert super admin of unauthorized attempts
+- **Automatic Coach Invitations**: Send invites to unauthorized users
+- **Analytics Dashboard**: Login patterns and statistics
+- **Export Functionality**: Download login attempt reports
 
 ## 🔧 Development & Customization
 
