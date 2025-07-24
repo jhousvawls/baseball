@@ -820,11 +820,17 @@ function renderAdminPractices() {
     const container = document.getElementById('practices-content');
     if (!container) return;
     
-    container.innerHTML = '';
+    // Find and preserve the CSV upload section
+    const csvSection = container.querySelector('.bg-white.rounded-xl.shadow-md.p-6.mt-8');
     
+    // Clear only the practice cards, not the entire container
+    const practiceCards = container.querySelectorAll('.bg-white.rounded-xl.shadow-md.p-6:not(.mt-8)');
+    practiceCards.forEach(card => card.remove());
+    
+    // Add practice cards before the CSV section
     practices.forEach(practice => {
         const card = document.createElement('div');
-        card.className = 'bg-white rounded-xl shadow-md p-6';
+        card.className = 'bg-white rounded-xl shadow-md p-6 mb-4';
         
         // Format last updated info
         const lastUpdatedDate = practice.lastUpdatedAt ? formatDate(practice.lastUpdatedAt.toDate()) : formatDate(new Date());
@@ -853,7 +859,13 @@ function renderAdminPractices() {
                 <p><strong>Last Updated By:</strong> ${lastUpdatedBy}</p>
             </div>
         `;
-        container.appendChild(card);
+        
+        // Insert before CSV section if it exists, otherwise append to container
+        if (csvSection) {
+            container.insertBefore(card, csvSection);
+        } else {
+            container.appendChild(card);
+        }
     });
 }
 
