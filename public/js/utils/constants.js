@@ -1,5 +1,5 @@
 // Application Constants
-export const SUPER_ADMIN_EMAIL = 'admin@braves-practice.com';
+export const SUPER_ADMIN_EMAIL = 'john@ahsodesigns.com';
 export const YOUTUBE_API_KEY = 'AIzaSyDbFiqPG91hq5_ie2vgVQ6ex98Cp4At52U';
 export const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3/search';
 
