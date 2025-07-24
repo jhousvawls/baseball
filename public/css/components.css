@@ -17,10 +17,12 @@
     border-radius: 8px;
 }
 
-/* Video Search Dropdown Styles */
+/* Video Search Dropdown Styles - Updated Z-Index */
 .video-search-dropdown {
-    z-index: 1000;
+    z-index: var(--z-dropdown);
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 400px;
+    max-height: 300px;
 }
 
 .video-search-dropdown .video-result {
@@ -74,22 +76,22 @@
 }
 
 .video-result-btn {
-    padding: 4px 8px;
-    border-radius: 4px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
     font-size: 11px;
     font-weight: 600;
-    transition: all 0.2s ease;
+    transition: all var(--transition-normal);
     border: none;
     cursor: pointer;
 }
 
 .video-result-btn.use-btn {
-    background-color: #ce1141;
+    background-color: var(--braves-red);
     color: white;
 }
 
 .video-result-btn.use-btn:hover {
-    background-color: #b10e37;
+    background-color: var(--braves-red-hover);
 }
 
 .video-result-btn.preview-btn {
@@ -144,8 +146,8 @@
 .practice-editor-field input:focus,
 .practice-editor-field textarea:focus {
     outline: none;
-    border-color: #ce1141;
-    box-shadow: 0 0 0 3px rgba(206, 17, 65, 0.1);
+    border-color: var(--braves-red);
+    box-shadow: 0 0 0 3px var(--braves-red-light);
 }
 
 .practice-editor-field textarea {
@@ -164,7 +166,7 @@
 }
 
 .find-video-btn {
-    background-color: #3b82f6;
+    background-color: var(--braves-navy);
     color: white;
     border: none;
     padding: 10px 16px;
@@ -177,7 +179,7 @@
 }
 
 .find-video-btn:hover {
-    background-color: #2563eb;
+    background-color: var(--braves-red);
 }
 
 .find-video-btn:disabled {
@@ -238,7 +240,7 @@
     border-radius: 8px;
     padding: 16px;
     display: flex;
-    justify-content: between;
+    justify-content: space-between;
     align-items: center;
 }
 
@@ -357,7 +359,7 @@
     height: 16px;
     border: 2px solid #f3f4f6;
     border-radius: 50%;
-    border-top-color: #ce1141;
+    border-top-color: var(--braves-red);
     animation: spin 1s ease-in-out infinite;
 }
 
@@ -370,8 +372,101 @@
 /* Focus States for Accessibility */
 .find-video-btn:focus,
 .video-result-btn:focus {
-    outline: 2px solid #ce1141;
+    outline: 2px solid var(--braves-red);
     outline-offset: 2px;
+}
+
+/* Practice Section Styles */
+.practice-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.practice-section:hover {
+    border-color: var(--braves-red);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.section-icon {
+    color: var(--braves-red);
+    font-size: 1.25rem;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--braves-navy);
+    margin: 0;
+    flex: 1;
+}
+
+.section-duration {
+    background-color: var(--braves-red);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.section-content {
+    margin-top: 1rem;
+}
+
+.section-description {
+    color: #475569;
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+/* Homework Section Styles */
+.homework-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+}
+
+.homework-divider {
+    border-top: 3px dotted var(--braves-red);
+    margin-bottom: 1.5rem;
+    opacity: 0.6;
+}
+
+.homework-video-btn {
+    background-color: var(--braves-red);
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.homework-video-btn:hover {
+    background-color: var(--braves-red-hover);
+    transform: translateY(-1px);
 }
 
 /* Error States */
@@ -384,4 +479,446 @@
     color: #ef4444;
     font-size: 12px;
     margin-top: 4px;
+}
+
+/* Enhanced Coach Profile Styles */
+.enhanced-coach-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.enhanced-coach-card:hover {
+    border-color: var(--braves-red);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.coach-profile-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+}
+
+.coach-avatar-container {
+    position: relative;
+    display: inline-block;
+}
+
+.coach-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e5e7eb;
+}
+
+.coach-avatar-fallback {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: var(--braves-red);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 18px;
+    border: 2px solid #e5e7eb;
+}
+
+.login-status-indicator {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+}
+
+.login-status-indicator.recently-active {
+    background: #10b981;
+    color: white;
+}
+
+.login-status-indicator.active-this-week {
+    background: #f59e0b;
+    color: white;
+}
+
+.login-status-indicator.inactive {
+    background: #ef4444;
+    color: white;
+}
+
+.login-status-indicator.long-inactive {
+    background: #6b7280;
+    color: white;
+}
+
+.login-status-indicator.never-logged-in {
+    background: #9ca3af;
+    color: white;
+}
+
+.coach-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.coach-name-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.coach-display-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--braves-navy);
+    margin: 0;
+}
+
+.edit-name-btn {
+    background: none;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    opacity: 0;
+}
+
+.coach-name-section:hover .edit-name-btn {
+    opacity: 1;
+}
+
+.edit-name-btn:hover {
+    color: var(--braves-red);
+    background-color: #f3f4f6;
+}
+
+.coach-email {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0 0 8px 0;
+    font-weight: 500;
+}
+
+.coach-login-info {
+    margin-bottom: 8px;
+}
+
+.login-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.login-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.login-status-badge.recently-active {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.login-status-badge.active-this-week {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.login-status-badge.inactive {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.login-status-badge.long-inactive {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.login-status-badge.never-logged-in {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.login-time {
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.login-details {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #9ca3af;
+}
+
+.coach-metadata {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.coach-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.action-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.activate-btn {
+    background-color: #10b981;
+    color: white;
+}
+
+.activate-btn:hover {
+    background-color: #059669;
+}
+
+.deactivate-btn {
+    background-color: #f59e0b;
+    color: white;
+}
+
+.deactivate-btn:hover {
+    background-color: #d97706;
+}
+
+.remove-btn {
+    background-color: var(--braves-red);
+    color: white;
+}
+
+.remove-btn:hover {
+    background-color: var(--braves-red-hover);
+}
+
+/* Name Editing Styles */
+.coach-name-input {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--braves-navy);
+    border: 2px solid var(--braves-red);
+    border-radius: 4px;
+    padding: 4px 8px;
+    background: white;
+    outline: none;
+    min-width: 150px;
+}
+
+.name-edit-buttons {
+    display: flex;
+    gap: 4px;
+    margin-left: 8px;
+}
+
+.save-name-btn,
+.cancel-name-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.save-name-btn {
+    background-color: #10b981;
+    color: white;
+}
+
+.save-name-btn:hover {
+    background-color: #059669;
+}
+
+.cancel-name-btn {
+    background-color: #6b7280;
+    color: white;
+}
+
+.cancel-name-btn:hover {
+    background-color: #4b5563;
+}
+
+/* Station Cards Styling */
+.stations-grid {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.station-card {
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+}
+
+.station-card:hover {
+    border-color: var(--braves-red);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.station-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.station-number {
+    background-color: var(--braves-red);
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.station-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--braves-navy);
+    margin: 0;
+    flex: 1;
+}
+
+.station-content {
+    margin-top: 0.75rem;
+}
+
+.station-description {
+    color: #475569;
+    line-height: 1.5;
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+}
+
+.station-video-btn {
+    background-color: var(--braves-navy);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    text-decoration: none;
+}
+
+.station-video-btn:hover {
+    background-color: var(--braves-red);
+}
+
+.station-video-btn:focus {
+    outline: 2px solid var(--braves-red);
+    outline-offset: 2px;
+}
+
+/* Mobile Responsive for Stations */
+@media (max-width: 640px) {
+    .stations-grid {
+        gap: 0.75rem;
+    }
+    
+    .station-card {
+        padding: 0.75rem;
+    }
+    
+    .station-header {
+        gap: 8px;
+    }
+    
+    .station-title {
+        font-size: 0.875rem;
+    }
+    
+    .station-video-btn {
+        width: 100%;
+        justify-content: center;
+        font-size: 0.75rem;
+        padding: 0.5rem;
+    }
+}
+
+/* Mobile Responsive for Coach Cards */
+@media (max-width: 640px) {
+    .enhanced-coach-card {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+        padding: 16px;
+    }
+    
+    .coach-profile-section {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 12px;
+    }
+    
+    .coach-name-section {
+        justify-content: center;
+    }
+    
+    .coach-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .action-btn {
+        flex: 1;
+        min-width: 80px;
+    }
 }

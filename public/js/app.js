@@ -7,6 +7,7 @@ import { getAuth, signInWithEmailAndPassword, signInWithPopup, signInWithRedirec
 import { FIREBASE_CONFIG } from '../js/config/firebase.js';
 import { showConfirmation } from '../js/modules/confirmation.js';
 import { videoSearchManager } from '../js/modules/videoSearch.js';
+import { aiAssistant } from '../js/modules/aiAssistant.js';
 import { SUPER_ADMIN_EMAIL, YOUTUBE_API_KEY, YOUTUBE_API_BASE_URL } from '../js/utils/constants.js';
 import { extractVideoId, formatDate, getTimeAgo, getErrorMessage, showAdminError } from '../js/utils/helpers.js';
 
@@ -28,8 +29,188 @@ let currentVideoSearchTarget = null;
 let videoSearchCache = new Map();
 let authorizedCoaches = [];
 let practiceChanges = [];
+let csvUploadData = null;
+let currentMode = 'public'; // 'public' or 'admin'
+let currentAdminTab = 'practices'; // 'practices', 'coaches', 'activity'
 
 console.log("Firebase Initialized Successfully.");
+
+// --- URL ROUTING & SESSION MANAGEMENT ---
+function initializeRouting() {
+    // Load saved state from session storage
+    loadSessionState();
+    
+    // Handle initial URL hash
+    handleHashChange();
+    
+    // Listen for hash changes (browser back/forward)
+    window.addEventListener('hashchange', handleHashChange);
+    
+    // Update mode indicator
+    updateModeIndicator();
+}
+
+function handleHashChange() {
+    const hash = window.location.hash.slice(1); // Remove #
+    
+    if (hash.startsWith('admin')) {
+        // Admin mode routing
+        const parts = hash.split('/');
+        if (parts.length > 1) {
+            currentAdminTab = parts[1] || 'practices';
+        }
+        
+        // Only switch to admin if user is authenticated
+        if (isAdmin) {
+            setMode('admin');
+            switchTab(currentAdminTab);
+        }
+    } else if (hash.startsWith('public')) {
+        // Public mode routing
+        const parts = hash.split('/');
+        if (parts.length > 2 && parts[1] === 'practice') {
+            const practiceNum = parseInt(parts[2]);
+            if (practiceNum >= 1 && practiceNum <= 8) {
+                currentPractice = practiceNum;
+            }
+        }
+        setMode('public');
+        selectPractice(currentPractice);
+    } else if (hash === '') {
+        // Default to public mode
+        setMode('public');
+        updateURL();
+    }
+}
+
+function setMode(mode) {
+    currentMode = mode;
+    updateModeIndicator();
+    updateAdminButton();
+    saveSessionState();
+    
+    if (mode === 'admin' && isAdmin) {
+        showAdminDashboard();
+    } else if (mode === 'public') {
+        hideAdminDashboard();
+    }
+}
+
+function updateURL() {
+    let newHash = '';
+    
+    if (currentMode === 'admin') {
+        newHash = `#admin/${currentAdminTab}`;
+    } else {
+        newHash = `#public/practice/${currentPractice}`;
+    }
+    
+    // Update URL without triggering hashchange event
+    if (window.location.hash !== newHash) {
+        history.replaceState(null, null, newHash);
+    }
+}
+
+function updateModeIndicator() {
+    const breadcrumb = document.getElementById('mode-breadcrumb');
+    if (!breadcrumb) return;
+    
+    if (currentMode === 'admin') {
+        const tabNames = {
+            'practices': 'Practices',
+            'coaches': 'Coaches', 
+            'activity': 'Activity'
+        };
+        breadcrumb.textContent = `Admin Dashboard > ${tabNames[currentAdminTab] || 'Practices'}`;
+    } else {
+        const practice = practices.find(p => p.id === currentPractice);
+        const practiceTitle = practice ? practice.title : `Practice ${currentPractice}`;
+        breadcrumb.textContent = `Public View > ${practiceTitle}`;
+    }
+}
+
+function updateAdminButton() {
+    const adminButton = document.getElementById('admin-toggle');
+    if (!adminButton) return;
+    
+    if (currentMode === 'admin' && isAdmin) {
+        adminButton.innerHTML = '<i class="fas fa-sign-out-alt mr-2"></i>Exit Admin';
+        adminButton.onclick = () => exitAdminMode();
+    } else if (isAdmin && currentMode === 'public') {
+        // User is authenticated but in public view - show "Enter Admin" 
+        adminButton.innerHTML = '<i class="fas fa-cog mr-2"></i>Enter Admin';
+        adminButton.onclick = () => enterAdminMode();
+    } else {
+        // User is not authenticated - show login modal
+        adminButton.innerHTML = '<i class="fas fa-cog mr-2"></i>Admin';
+        adminButton.onclick = () => enterAdminMode();
+    }
+}
+
+function enterAdminMode() {
+    console.log('enterAdminMode called - isAdmin:', isAdmin, 'currentUser:', currentUser?.email);
+    
+    // Check if user is authenticated and authorized
+    if (isAdmin && currentUser) {
+        console.log('User is authenticated and authorized, going to admin dashboard');
+        setMode('admin');
+        updateURL();
+    } else if (currentUser && currentUser.email) {
+        // User is authenticated but might not have admin flag set yet
+        // Re-check authorization
+        console.log('User is authenticated but admin status unclear, re-checking authorization');
+        handleAuthSuccess(currentUser);
+    } else {
+        // User is not authenticated, show login modal
+        console.log('User not authenticated, showing login modal');
+        const adminModal = document.getElementById('admin-modal');
+        adminModal.classList.remove('hidden');
+    }
+}
+
+function exitAdminMode() {
+    setMode('public');
+    updateURL();
+}
+
+function hideAdminDashboard() {
+    const adminDashboard = document.getElementById('admin-dashboard');
+    if (adminDashboard) {
+        adminDashboard.classList.add('hidden');
+    }
+}
+
+function saveSessionState() {
+    try {
+        const state = {
+            currentMode,
+            currentPractice,
+            currentAdminTab,
+            timestamp: Date.now()
+        };
+        sessionStorage.setItem('baseballPracticeState', JSON.stringify(state));
+    } catch (error) {
+        console.error('Error saving session state:', error);
+    }
+}
+
+function loadSessionState() {
+    try {
+        const saved = sessionStorage.getItem('baseballPracticeState');
+        if (saved) {
+            const state = JSON.parse(saved);
+            
+            // Only restore if saved within last 24 hours
+            if (Date.now() - state.timestamp < 24 * 60 * 60 * 1000) {
+                currentPractice = state.currentPractice || 1;
+                currentAdminTab = state.currentAdminTab || 'practices';
+                // Don't restore currentMode - let URL or default handle it
+            }
+        }
+    } catch (error) {
+        console.error('Error loading session state:', error);
+    }
+}
 
 // --- AUTHENTICATION ---
 function initializeAuth() {
@@ -138,9 +319,20 @@ async function updateCoachLastLogin(email) {
         for (const doc of snapshot.docs) {
             const coach = doc.data();
             if (coach.email === email) {
-                await updateDoc(doc.ref, {
+                // Update login time and sync Google profile data
+                const updateData = {
                     lastLogin: new Date()
-                });
+                };
+                
+                // Sync Google profile data if available
+                if (currentUser?.photoURL) {
+                    updateData.photoURL = currentUser.photoURL;
+                }
+                if (currentUser?.displayName) {
+                    updateData.googleDisplayName = currentUser.displayName;
+                }
+                
+                await updateDoc(doc.ref, updateData);
                 break;
             }
         }
@@ -192,14 +384,14 @@ async function seedDatabase() {
         {
             id: 1,
             title: "First Steps",
-            totalTime: 45,
+            totalTime: 60,
             warmup: {
                 title: "Welcome Circle",
                 desc: "Gather players in a circle. Introduce coaches and players. Explain what baseball is and what we'll do today. Practice saying 'Good job!' and giving high-fives.",
                 duration: 5
             },
-            stationTime: 25,
-            stationInstructions: "Split into 4 groups. Spend 6 minutes at each station. Focus on fun and participation over perfection.",
+            stationTime: 35,
+            stationInstructions: "Split into 4 groups. Spend 8-9 minutes at each station. Focus on fun and participation over perfection.",
             stations: [
                 {
                     name: "Alligator Chomps",
@@ -225,12 +417,12 @@ async function seedDatabase() {
             finisher: {
                 title: "Home Run Derby",
                 desc: "Every player gets to hit until they get a 'home run' (any ball that goes past the pitcher). Celebrate each home run with team cheers and high-fives all around.",
-                duration: 8
+                duration: 15
             },
             wrapup: {
                 title: "Circle Time",
                 desc: "Gather in circle. Ask each player what their favorite part was. Give out stickers or stamps. Remind them when next practice is and that they're all baseball players now!",
-                duration: 2
+                duration: 5
             },
             homework: {
                 title: "Play Catch with Family",
@@ -241,14 +433,14 @@ async function seedDatabase() {
         {
             id: 2,
             title: "Building Basics",
-            totalTime: 50,
+            totalTime: 60,
             warmup: {
                 title: "Baseball Simon Says",
                 desc: "Play Simon Says with baseball actions: 'Simon says swing your bat', 'Simon says catch a fly ball', 'Simon says run to first base'. Gets players moving and thinking baseball.",
                 duration: 5
             },
-            stationTime: 30,
-            stationInstructions: "4 stations, 7 minutes each. Add more challenge while keeping it fun. Encourage players to help each other.",
+            stationTime: 35,
+            stationInstructions: "4 stations, 8-9 minutes each. Add more challenge while keeping it fun. Encourage players to help each other.",
             stations: [
                 {
                     name: "Bucket Catches",
@@ -274,7 +466,7 @@ async function seedDatabase() {
             finisher: {
                 title: "Beat the Coach",
                 desc: "Players try to run around all bases before coach can field a hit ball and touch home plate. Coach should 'struggle' to field balls and run slowly. Every player wins!",
-                duration: 10
+                duration: 15
             },
             wrapup: {
                 title: "Skills Check",
@@ -290,14 +482,14 @@ async function seedDatabase() {
         {
             id: 3,
             title: "Making Connections",
-            totalTime: 55,
+            totalTime: 60,
             warmup: {
                 title: "Partner Stretches",
                 desc: "Pair up players for simple stretches. Arm circles, toe touches, gentle twists. Partners help count to 10. Builds teamwork and gets bodies ready for activity.",
                 duration: 5
             },
             stationTime: 35,
-            stationInstructions: "4 stations, 8 minutes each. Focus on connecting skills together. Players should start seeing how catching, throwing, and hitting work together.",
+            stationInstructions: "4 stations, 8-9 minutes each. Focus on connecting skills together. Players should start seeing how catching, throwing, and hitting work together.",
             stations: [
                 {
                     name: "Catch and Throw",
@@ -323,7 +515,7 @@ async function seedDatabase() {
             finisher: {
                 title: "Scrimmage Simulation",
                 desc: "Simple game: hit off tee, run to first, next batter hits and first runner advances. No outs, everyone gets to hit and run. Focus on having fun and moving around bases.",
-                duration: 10
+                duration: 15
             },
             wrapup: {
                 title: "Team Cheer",
@@ -345,8 +537,8 @@ async function seedDatabase() {
                 desc: "Simple poses with baseball names: 'Batter's Box' (squat), 'Home Run Swing' (gentle twist), 'Fly Ball Catch' (reach up high). Makes stretching fun and baseball-themed.",
                 duration: 5
             },
-            stationTime: 40,
-            stationInstructions: "4 stations, 10 minutes each. Introduce basic game concepts. Players should start understanding what happens in a real game.",
+            stationTime: 35,
+            stationInstructions: "4 stations, 8-9 minutes each. Introduce basic game concepts. Players should start understanding what happens in a real game.",
             stations: [
                 {
                     name: "Fielding Positions",
@@ -372,7 +564,7 @@ async function seedDatabase() {
             finisher: {
                 title: "Mini Inning",
                 desc: "Play one 'inning' where everyone bats once. Mix tee and coach pitch. Focus on running bases and cheering for teammates. No keeping score, just playing baseball!",
-                duration: 10
+                duration: 15
             },
             wrapup: {
                 title: "Position Practice",
@@ -394,8 +586,8 @@ async function seedDatabase() {
                 desc: "High knees to first base, butt kicks to second, side shuffles to third, backwards jog home. Gets players moving in different ways while touring the bases.",
                 duration: 5
             },
-            stationTime: 40,
-            stationInstructions: "4 stations, 10 minutes each. Refine skills learned in previous practices. Add more challenge and introduce new concepts.",
+            stationTime: 35,
+            stationInstructions: "4 stations, 8-9 minutes each. Refine skills learned in previous practices. Add more challenge and introduce new concepts.",
             stations: [
                 {
                     name: "Ground Ball Fundamentals",
@@ -421,7 +613,7 @@ async function seedDatabase() {
             finisher: {
                 title: "Skills Showcase",
                 desc: "Each player demonstrates one skill they've improved. Other players cheer and give compliments. Builds confidence and celebrates individual progress.",
-                duration: 10
+                duration: 15
             },
             wrapup: {
                 title: "Goal Setting",
@@ -437,14 +629,14 @@ async function seedDatabase() {
         {
             id: 6,
             title: "Team Play",
-            totalTime: 65,
+            totalTime: 60,
             warmup: {
                 title: "Team Building Circle",
                 desc: "Players stand in circle and share one thing they like about the teammate to their right. Builds team chemistry and positive communication.",
                 duration: 5
             },
-            stationTime: 45,
-            stationInstructions: "4 stations, 11 minutes each. Focus on working together and understanding team concepts. Introduce more game-like situations.",
+            stationTime: 35,
+            stationInstructions: "4 stations, 8-9 minutes each. Focus on working together and understanding team concepts. Introduce more game-like situations.",
             stations: [
                 {
                     name: "Relay Races",
@@ -470,7 +662,7 @@ async function seedDatabase() {
             finisher: {
                 title: "Team Challenge",
                 desc: "Whole team works together to complete challenges: everyone must catch one fly ball, team must make 10 good throws in a row, etc. Celebrate team success!",
-                duration: 10
+                duration: 15
             },
             wrapup: {
                 title: "Team Huddle",
@@ -486,14 +678,14 @@ async function seedDatabase() {
         {
             id: 7,
             title: "Game Situations",
-            totalTime: 65,
+            totalTime: 60,
             warmup: {
                 title: "Situation Stretches",
                 desc: "Stretch while discussing game situations: 'Stretch like you're reaching for a high fly ball', 'Bend like you're fielding a ground ball'. Combines physical and mental preparation.",
                 duration: 5
             },
-            stationTime: 45,
-            stationInstructions: "4 stations, 11 minutes each. Practice real game situations. Players should start thinking like baseball players and making decisions.",
+            stationTime: 35,
+            stationInstructions: "4 stations, 8-9 minutes each. Practice real game situations. Players should start thinking like baseball players and making decisions.",
             stations: [
                 {
                     name: "Rundown Drills",
@@ -519,7 +711,7 @@ async function seedDatabase() {
             finisher: {
                 title: "Scrimmage Game",
                 desc: "Play 2-3 innings of real baseball with modified rules: everyone bats each inning, coach helps with pitching, focus on fun over competition. Keep it loose and encouraging.",
-                duration: 10
+                duration: 15
             },
             wrapup: {
                 title: "Game Reflection",
@@ -535,14 +727,14 @@ async function seedDatabase() {
         {
             id: 8,
             title: "Championship Ready",
-            totalTime: 70,
+            totalTime: 60,
             warmup: {
                 title: "Championship Warm-up",
                 desc: "Full team warm-up like the big leagues: jogging, arm circles, practice swings, fielding positions. Players should feel like real baseball players preparing for a big game.",
                 duration: 5
             },
-            stationTime: 50,
-            stationInstructions: "4 stations, 12 minutes each. Put it all together. Players should demonstrate all skills learned and show confidence in game situations.",
+            stationTime: 35,
+            stationInstructions: "4 stations, 8-9 minutes each. Put it all together. Players should demonstrate all skills learned and show confidence in game situations.",
             stations: [
                 {
                     name: "Advanced Fielding",
@@ -568,7 +760,7 @@ async function seedDatabase() {
             finisher: {
                 title: "Championship Game",
                 desc: "Play full scrimmage game with all rules. Keep score if players want, but emphasize effort and improvement over winning. Celebrate great plays by both teams.",
-                duration: 10
+                duration: 15
             },
             wrapup: {
                 title: "Season Celebration",
@@ -615,6 +807,9 @@ function selectPractice(practiceNumber) {
     currentPractice = practiceNumber;
     renderPracticeSelector();
     displayPractice(practiceNumber);
+    updateModeIndicator();
+    updateURL();
+    saveSessionState();
 }
 
 function displayPractice(practiceNumber) {
@@ -647,13 +842,14 @@ function displayPractice(practiceNumber) {
     // Warm-up section
     if (practice.warmup) {
         html += `
-            <div class="mb-8">
-                <h3 class="text-xl font-bold text-braves-navy mb-4 flex items-center">
-                    <i class="fas fa-running mr-3 text-braves-red"></i>
-                    ${practice.warmup.title} (${practice.warmup.duration} mins)
-                </h3>
-                <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
-                    <p class="text-blue-800">${practice.warmup.desc}</p>
+            <div class="practice-section">
+                <div class="section-header">
+                    <i class="fas fa-running section-icon"></i>
+                    <h3 class="section-title">${practice.warmup.title}</h3>
+                    <span class="section-duration">${practice.warmup.duration} mins</span>
+                </div>
+                <div class="section-content">
+                    <p class="section-description">${practice.warmup.desc}</p>
                 </div>
             </div>
         `;
@@ -662,30 +858,41 @@ function displayPractice(practiceNumber) {
     // Stations section
     if (practice.stations && practice.stations.length > 0) {
         html += `
-            <div class="mb-8">
-                <h3 class="text-xl font-bold text-braves-navy mb-4 flex items-center">
-                    <i class="fas fa-baseball-ball mr-3 text-braves-red"></i>
-                    Skill Stations (${practice.stationTime} mins)
-                </h3>
-                <p class="text-gray-600 mb-6">${practice.stationInstructions}</p>
+            <div class="practice-section">
+                <div class="section-header">
+                    <i class="fas fa-baseball-ball section-icon"></i>
+                    <h3 class="section-title">Skill Stations</h3>
+                    <span class="section-duration">${practice.stationTime} mins</span>
+                </div>
+                <div class="section-content">
+                    <p class="section-description mb-6">${practice.stationInstructions}</p>
+                    
+                    <div class="stations-grid">
         `;
 
         practice.stations.forEach((station, index) => {
             html += `
-                <div class="mb-6 pb-6 border-b border-gray-200 last:border-b-0">
-                    <h4 class="text-lg font-bold text-gray-800 mb-3">${station.name}</h4>
-                    <p class="text-gray-700 mb-4">${station.desc}</p>
-                    ${station.video ? `
-                        <button onclick="openVideo('${station.video}', '${station.name}')" 
-                                class="video-link bg-blue-900 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-blue-800 transition-all">
-                            <i class="fas fa-play mr-2"></i>Watch Station Drill
-                        </button>
-                    ` : ''}
+                <div class="station-card">
+                    <div class="station-header">
+                        <span class="station-number">${index + 1}</span>
+                        <h4 class="station-title">${station.name}</h4>
+                    </div>
+                    <div class="station-content">
+                        <p class="station-description">${station.desc}</p>
+                        ${station.video ? `
+                            <button onclick="openVideo('${station.video}', '${station.name}')" 
+                                    class="station-video-btn">
+                                <i class="fas fa-play"></i>Watch Station Drill
+                            </button>
+                        ` : ''}
+                    </div>
                 </div>
             `;
         });
 
         html += `
+                    </div>
+                </div>
             </div>
         `;
     }
@@ -693,13 +900,14 @@ function displayPractice(practiceNumber) {
     // Fun Finisher section
     if (practice.finisher) {
         html += `
-            <div class="mb-8">
-                <h3 class="text-xl font-bold text-braves-navy mb-4 flex items-center">
-                    <i class="fas fa-trophy mr-3 text-braves-red"></i>
-                    ${practice.finisher.title} (${practice.finisher.duration} mins)
-                </h3>
-                <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
-                    <p class="text-yellow-800">${practice.finisher.desc}</p>
+            <div class="practice-section">
+                <div class="section-header">
+                    <i class="fas fa-trophy section-icon"></i>
+                    <h3 class="section-title">${practice.finisher.title}</h3>
+                    <span class="section-duration">${practice.finisher.duration} mins</span>
+                </div>
+                <div class="section-content">
+                    <p class="section-description">${practice.finisher.desc}</p>
                 </div>
             </div>
         `;
@@ -708,13 +916,14 @@ function displayPractice(practiceNumber) {
     // Wrap-up section
     if (practice.wrapup) {
         html += `
-            <div class="mb-8">
-                <h3 class="text-xl font-bold text-braves-navy mb-4 flex items-center">
-                    <i class="fas fa-users mr-3 text-braves-red"></i>
-                    ${practice.wrapup.title} (${practice.wrapup.duration} mins)
-                </h3>
-                <div class="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
-                    <p class="text-green-800">${practice.wrapup.desc}</p>
+            <div class="practice-section">
+                <div class="section-header">
+                    <i class="fas fa-users section-icon"></i>
+                    <h3 class="section-title">${practice.wrapup.title}</h3>
+                    <span class="section-duration">${practice.wrapup.duration} mins</span>
+                </div>
+                <div class="section-content">
+                    <p class="section-description">${practice.wrapup.desc}</p>
                 </div>
             </div>
         `;
@@ -723,19 +932,22 @@ function displayPractice(practiceNumber) {
     // Parent Homework section
     if (practice.homework) {
         html += `
-            <div style="border-top: 3px dotted #dc2626; padding-top: 24px; margin-top: 32px;">
-                <h3 class="text-xl font-bold text-braves-navy mb-4 flex items-center">
-                    <i class="fas fa-home mr-3 text-braves-navy"></i>
-                    Parent Homework
-                </h3>
-                <h4 class="font-semibold text-gray-800 mb-3">${practice.homework.title}</h4>
-                <p class="text-gray-700 mb-4">${practice.homework.desc}</p>
-                ${practice.homework.video ? `
-                    <button onclick="openVideo('${practice.homework.video}', '${practice.homework.title}')" 
-                            class="video-link bg-red-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-red-700 transition-all">
-                        <i class="fas fa-lightbulb mr-2"></i>Watch Homework Drill
-                    </button>
-                ` : ''}
+            <div class="homework-section">
+                <div class="homework-divider"></div>
+                <div class="practice-section">
+                    <div class="section-header">
+                        <i class="fas fa-home section-icon"></i>
+                        <h3 class="section-title">Parent Homework</h3>
+                    </div>
+                    <h4 class="font-semibold text-gray-800 mb-3">${practice.homework.title}</h4>
+                    <p class="text-gray-700 mb-4">${practice.homework.desc}</p>
+                    ${practice.homework.video ? `
+                        <button onclick="openVideo('${practice.homework.video}', '${practice.homework.title}')" 
+                                class="homework-video-btn">
+                            <i class="fas fa-lightbulb mr-2"></i>Watch Homework Drill
+                        </button>
+                    ` : ''}
+                </div>
             </div>
         `;
     }
@@ -801,11 +1013,22 @@ function renderAdminPractices() {
     const container = document.getElementById('practices-content');
     if (!container) return;
     
-    container.innerHTML = '';
+    // Find and preserve the CSV upload section
+    const csvSection = container.querySelector('.bg-white.rounded-xl.shadow-md.p-6.mt-8');
     
+    // Clear only the practice cards, not the entire container
+    const practiceCards = container.querySelectorAll('.bg-white.rounded-xl.shadow-md.p-6:not(.mt-8)');
+    practiceCards.forEach(card => card.remove());
+    
+    // Add practice cards before the CSV section
     practices.forEach(practice => {
         const card = document.createElement('div');
-        card.className = 'bg-white rounded-xl shadow-md p-6';
+        card.className = 'bg-white rounded-xl shadow-md p-6 mb-4';
+        
+        // Format last updated info
+        const lastUpdatedDate = practice.lastUpdatedAt ? formatDate(practice.lastUpdatedAt.toDate()) : formatDate(new Date());
+        const lastUpdatedBy = practice.lastUpdatedBy || 'System';
+        
         card.innerHTML = `
             <div class="flex items-center justify-between mb-4">
                 <div>
@@ -813,18 +1036,29 @@ function renderAdminPractices() {
                     <p class="text-sm text-gray-600">Practice ${practice.id} • ${practice.totalTime} minutes</p>
                 </div>
                 <div class="flex space-x-2">
+                    <button onclick="openAIAssistant('${practice.docId}')" 
+                            class="bg-braves-navy-100 text-braves-navy px-3 py-2 rounded-lg text-sm hover:bg-braves-navy hover:text-white transition-all">
+                        <i class="fas fa-robot mr-1"></i>AI Assistant
+                    </button>
                     <button onclick="editPractice('${practice.docId}')" 
-                            class="bg-blue-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-600 transition-all">
+                            class="bg-braves-navy text-white px-3 py-2 rounded-lg text-sm hover:bg-braves-red transition-all">
                         <i class="fas fa-edit mr-1"></i>Edit
                     </button>
                 </div>
             </div>
             <div class="text-sm text-gray-600">
                 <p><strong>Stations:</strong> ${practice.stations ? practice.stations.length : 0}</p>
-                <p><strong>Last Updated:</strong> ${formatDate(new Date())}</p>
+                <p><strong>Last Updated:</strong> ${lastUpdatedDate}</p>
+                <p><strong>Last Updated By:</strong> ${lastUpdatedBy}</p>
             </div>
         `;
-        container.appendChild(card);
+        
+        // Insert before CSV section if it exists, otherwise append to container
+        if (csvSection) {
+            container.insertBefore(card, csvSection);
+        } else {
+            container.appendChild(card);
+        }
     });
 }
 
@@ -1039,7 +1273,10 @@ async function savePractice() {
                 title: document.getElementById('homework-title').value,
                 desc: document.getElementById('homework-desc').value,
                 video: document.getElementById('homework-video').value
-            }
+            },
+            // Add tracking fields
+            lastUpdatedAt: new Date(),
+            lastUpdatedBy: currentUser?.displayName || currentUser?.email || 'Unknown User'
         };
         
         // Collect stations data
@@ -1102,24 +1339,71 @@ function renderCoaches() {
     
     authorizedCoaches.forEach(coach => {
         const card = document.createElement('div');
-        card.className = 'coach-card';
+        card.className = 'enhanced-coach-card';
+        
+        // Generate avatar HTML
+        const avatarHtml = coach.photoURL ? 
+            `<img src="${coach.photoURL}" alt="${coach.displayName || coach.email}" class="coach-avatar">` :
+            `<div class="coach-avatar-fallback">${getInitials(coach.displayName || coach.email)}</div>`;
+        
+        // Determine display name
+        const displayName = coach.displayName || coach.email.split('@')[0];
+        
+        // Calculate login status and timing
+        const loginStatus = getLoginStatus(coach.lastLogin);
+        const loginDisplay = getLoginDisplay(coach.lastLogin);
+        
         card.innerHTML = `
-            <div class="coach-info">
-                <h4>${coach.displayName || coach.email}</h4>
-                <p>${coach.email}</p>
-                <p class="text-xs">Added: ${formatDate(coach.addedAt?.toDate?.() || new Date())}</p>
-                ${coach.lastLogin ? `<p class="text-xs">Last login: ${formatDate(coach.lastLogin.toDate())}</p>` : ''}
+            <div class="coach-profile-section">
+                <div class="coach-avatar-container">
+                    ${avatarHtml}
+                    <div class="login-status-indicator ${loginStatus.class}" title="${loginStatus.tooltip}">
+                        <i class="fas fa-circle"></i>
+                    </div>
+                </div>
+                <div class="coach-details">
+                    <div class="coach-name-section">
+                        <h4 class="coach-display-name" id="display-name-${coach.id}">${displayName}</h4>
+                        <button onclick="editCoachName('${coach.id}')" class="edit-name-btn" title="Edit name">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                    </div>
+                    <p class="coach-email">Email: ${coach.email}</p>
+                    
+                    <!-- Enhanced Login Information -->
+                    <div class="coach-login-info">
+                        <div class="login-status-row">
+                            <span class="login-status-badge ${loginStatus.class}">
+                                <i class="fas fa-circle mr-1"></i>
+                                ${loginStatus.text}
+                            </span>
+                            <span class="login-time">${loginDisplay.relative}</span>
+                        </div>
+                        ${loginDisplay.absolute ? `
+                            <div class="login-details">
+                                <i class="fas fa-clock mr-1"></i>
+                                <span class="text-xs text-gray-600">${loginDisplay.absolute}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="coach-metadata">
+                        <p class="text-xs text-gray-500">
+                            <i class="fas fa-user-plus mr-1"></i>
+                            Added: ${formatDate(coach.addedAt?.toDate?.() || new Date())}
+                        </p>
+                    </div>
+                </div>
             </div>
-            <div class="flex items-center space-x-2">
+            <div class="coach-actions">
                 <span class="coach-status ${coach.isActive ? 'active' : 'inactive'}">
                     ${coach.isActive ? 'Active' : 'Inactive'}
                 </span>
                 <button onclick="toggleCoach('${coach.id}')" 
-                        class="px-3 py-1 rounded text-sm ${coach.isActive ? 'bg-yellow-500 text-white' : 'bg-green-500 text-white'}">
+                        class="action-btn ${coach.isActive ? 'deactivate-btn' : 'activate-btn'}">
                     ${coach.isActive ? 'Deactivate' : 'Activate'}
                 </button>
-                <button onclick="removeCoach('${coach.id}')" 
-                        class="px-3 py-1 bg-red-500 text-white rounded text-sm">
+                <button onclick="removeCoach('${coach.id}')" class="action-btn remove-btn">
                     Remove
                 </button>
             </div>
@@ -1145,7 +1429,8 @@ async function addCoach() {
     try {
         await addDoc(collection(db, "authorized_coaches"), {
             email: email,
-            displayName: email.split('@')[0],
+            displayName: email.split('@')[0], // Default to email username
+            photoURL: null, // Will be populated when they first sign in
             addedBy: currentUser.email,
             addedAt: new Date(),
             isActive: true
@@ -1153,6 +1438,9 @@ async function addCoach() {
         
         emailInput.value = '';
         loadCoaches();
+        
+        // Show invitation modal
+        showCoachInvitationModal(email);
         
     } catch (error) {
         console.error('Error adding coach:', error);
@@ -1178,22 +1466,52 @@ async function toggleCoach(coachId) {
 }
 
 async function removeCoach(coachId) {
-    const coach = authorizedCoaches.find(c => c.id === coachId);
-    if (!coach) return;
+    console.log('removeCoach called with coachId:', coachId);
     
-    showConfirmation(
-        'Remove Coach',
-        `Are you sure you want to remove ${coach.email}? This action cannot be undone.`,
-        async () => {
+    const coach = authorizedCoaches.find(c => c.id === coachId);
+    console.log('Found coach:', coach);
+    
+    if (!coach) {
+        console.error('Coach not found with ID:', coachId);
+        alert('Coach not found. Please refresh the page and try again.');
+        return;
+    }
+    
+    console.log('Showing confirmation dialog for coach:', coach.email);
+    
+    try {
+        showConfirmation(
+            'Remove Coach',
+            `Are you sure you want to remove ${coach.email}? This action cannot be undone.`,
+            async () => {
+                console.log('Confirmation accepted, removing coach...');
+                try {
+                    await deleteDoc(doc(db, "authorized_coaches", coachId));
+                    console.log('Coach removed successfully from database');
+                    loadCoaches();
+                } catch (error) {
+                    console.error('Error removing coach from database:', error);
+                    alert('Error removing coach. Please try again.');
+                }
+            },
+            () => {
+                console.log('Confirmation cancelled');
+            }
+        );
+    } catch (error) {
+        console.error('Error showing confirmation dialog:', error);
+        // Fallback to browser confirm if custom modal fails
+        if (confirm(`Are you sure you want to remove ${coach.email}? This action cannot be undone.`)) {
             try {
                 await deleteDoc(doc(db, "authorized_coaches", coachId));
+                console.log('Coach removed successfully using fallback method');
                 loadCoaches();
             } catch (error) {
-                console.error('Error removing coach:', error);
+                console.error('Error removing coach (fallback):', error);
                 alert('Error removing coach. Please try again.');
             }
         }
-    );
+    }
 }
 
 // --- ACTIVITY TRACKING ---
@@ -1360,6 +1678,438 @@ function closeVideoSearch() {
     currentVideoSearchTarget = null;
 }
 
+// --- CSV UPLOAD FUNCTIONALITY ---
+function generateSampleCSV() {
+    const headers = [
+        'id', 'title', 'totalTime',
+        'warmup_title', 'warmup_desc', 'warmup_duration',
+        'stationTime', 'stationInstructions',
+        'station1_name', 'station1_desc', 'station1_video',
+        'station2_name', 'station2_desc', 'station2_video',
+        'station3_name', 'station3_desc', 'station3_video',
+        'station4_name', 'station4_desc', 'station4_video',
+        'finisher_title', 'finisher_desc', 'finisher_duration',
+        'wrapup_title', 'wrapup_desc', 'wrapup_duration',
+        'homework_title', 'homework_desc', 'homework_video'
+    ];
+    
+    const rows = [headers];
+    
+    // Add current practice data
+    practices.forEach(practice => {
+        const row = [
+            practice.id,
+            practice.title,
+            practice.totalTime,
+            practice.warmup?.title || '',
+            practice.warmup?.desc || '',
+            practice.warmup?.duration || 5,
+            practice.stationTime || 35,
+            practice.stationInstructions || '',
+            practice.stations?.[0]?.name || '',
+            practice.stations?.[0]?.desc || '',
+            practice.stations?.[0]?.video || '',
+            practice.stations?.[1]?.name || '',
+            practice.stations?.[1]?.desc || '',
+            practice.stations?.[1]?.video || '',
+            practice.stations?.[2]?.name || '',
+            practice.stations?.[2]?.desc || '',
+            practice.stations?.[2]?.video || '',
+            practice.stations?.[3]?.name || '',
+            practice.stations?.[3]?.desc || '',
+            practice.stations?.[3]?.video || '',
+            practice.finisher?.title || '',
+            practice.finisher?.desc || '',
+            practice.finisher?.duration || 15,
+            practice.wrapup?.title || '',
+            practice.wrapup?.desc || '',
+            practice.wrapup?.duration || 5,
+            practice.homework?.title || '',
+            practice.homework?.desc || '',
+            practice.homework?.video || ''
+        ];
+        rows.push(row);
+    });
+    
+    return rows.map(row => 
+        row.map(cell => {
+            // Escape quotes and wrap in quotes if contains comma, quote, or newline
+            const cellStr = String(cell || '');
+            if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+                return '"' + cellStr.replace(/"/g, '""') + '"';
+            }
+            return cellStr;
+        }).join(',')
+    ).join('\n');
+}
+
+function downloadSampleCSV() {
+    try {
+        const csvContent = generateSampleCSV();
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'baseball_practices_sample.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    } catch (error) {
+        console.error('Error generating CSV:', error);
+        alert('Error generating sample CSV. Please try again.');
+    }
+}
+
+function parseCSV(csvText) {
+    const lines = [];
+    let currentLine = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < csvText.length; i++) {
+        const char = csvText[i];
+        const nextChar = csvText[i + 1];
+        
+        if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+                currentLine += '"';
+                i++; // Skip next quote
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (char === '\n' && !inQuotes) {
+            if (currentLine.trim()) {
+                lines.push(currentLine);
+            }
+            currentLine = '';
+        } else {
+            currentLine += char;
+        }
+    }
+    
+    if (currentLine.trim()) {
+        lines.push(currentLine);
+    }
+    
+    return lines.map(line => {
+        const fields = [];
+        let currentField = '';
+        let inQuotes = false;
+        
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            const nextChar = line[i + 1];
+            
+            if (char === '"') {
+                if (inQuotes && nextChar === '"') {
+                    currentField += '"';
+                    i++; // Skip next quote
+                } else {
+                    inQuotes = !inQuotes;
+                }
+            } else if (char === ',' && !inQuotes) {
+                fields.push(currentField);
+                currentField = '';
+            } else {
+                currentField += char;
+            }
+        }
+        
+        fields.push(currentField);
+        return fields;
+    });
+}
+
+function validateCSVData(data) {
+    const errors = [];
+    const warnings = [];
+    
+    if (data.length < 2) {
+        errors.push('CSV must contain at least a header row and one data row');
+        return { errors, warnings, validPractices: [] };
+    }
+    
+    const headers = data[0];
+    const expectedHeaders = [
+        'id', 'title', 'totalTime',
+        'warmup_title', 'warmup_desc', 'warmup_duration',
+        'stationTime', 'stationInstructions',
+        'station1_name', 'station1_desc', 'station1_video',
+        'station2_name', 'station2_desc', 'station2_video',
+        'station3_name', 'station3_desc', 'station3_video',
+        'station4_name', 'station4_desc', 'station4_video',
+        'finisher_title', 'finisher_desc', 'finisher_duration',
+        'wrapup_title', 'wrapup_desc', 'wrapup_duration',
+        'homework_title', 'homework_desc', 'homework_video'
+    ];
+    
+    // Check for missing required headers
+    const missingHeaders = expectedHeaders.filter(header => !headers.includes(header));
+    if (missingHeaders.length > 0) {
+        errors.push(`Missing required columns: ${missingHeaders.join(', ')}`);
+    }
+    
+    const validPractices = [];
+    
+    // Validate each practice row
+    for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        const practice = {};
+        
+        // Map CSV columns to practice object
+        headers.forEach((header, index) => {
+            const value = row[index] || '';
+            
+            switch (header) {
+                case 'id':
+                    practice.id = parseInt(value);
+                    if (isNaN(practice.id) || practice.id < 1 || practice.id > 8) {
+                        errors.push(`Row ${i + 1}: Invalid practice ID "${value}". Must be 1-8.`);
+                    }
+                    break;
+                case 'title':
+                    practice.title = value.trim();
+                    if (!practice.title) {
+                        errors.push(`Row ${i + 1}: Practice title is required.`);
+                    }
+                    break;
+                case 'totalTime':
+                    practice.totalTime = parseInt(value);
+                    if (isNaN(practice.totalTime) || practice.totalTime < 30 || practice.totalTime > 120) {
+                        warnings.push(`Row ${i + 1}: Total time "${value}" seems unusual. Expected 30-120 minutes.`);
+                    }
+                    break;
+                case 'warmup_title':
+                    practice.warmup = practice.warmup || {};
+                    practice.warmup.title = value.trim();
+                    break;
+                case 'warmup_desc':
+                    practice.warmup = practice.warmup || {};
+                    practice.warmup.desc = value.trim();
+                    break;
+                case 'warmup_duration':
+                    practice.warmup = practice.warmup || {};
+                    practice.warmup.duration = parseInt(value) || 5;
+                    break;
+                case 'stationTime':
+                    practice.stationTime = parseInt(value) || 35;
+                    break;
+                case 'stationInstructions':
+                    practice.stationInstructions = value.trim();
+                    break;
+                case 'finisher_title':
+                    practice.finisher = practice.finisher || {};
+                    practice.finisher.title = value.trim();
+                    break;
+                case 'finisher_desc':
+                    practice.finisher = practice.finisher || {};
+                    practice.finisher.desc = value.trim();
+                    break;
+                case 'finisher_duration':
+                    practice.finisher = practice.finisher || {};
+                    practice.finisher.duration = parseInt(value) || 15;
+                    break;
+                case 'wrapup_title':
+                    practice.wrapup = practice.wrapup || {};
+                    practice.wrapup.title = value.trim();
+                    break;
+                case 'wrapup_desc':
+                    practice.wrapup = practice.wrapup || {};
+                    practice.wrapup.desc = value.trim();
+                    break;
+                case 'wrapup_duration':
+                    practice.wrapup = practice.wrapup || {};
+                    practice.wrapup.duration = parseInt(value) || 5;
+                    break;
+                case 'homework_title':
+                    practice.homework = practice.homework || {};
+                    practice.homework.title = value.trim();
+                    break;
+                case 'homework_desc':
+                    practice.homework = practice.homework || {};
+                    practice.homework.desc = value.trim();
+                    break;
+                case 'homework_video':
+                    practice.homework = practice.homework || {};
+                    practice.homework.video = value.trim();
+                    break;
+                default:
+                    // Handle station fields
+                    if (header.startsWith('station')) {
+                        const match = header.match(/station(\d+)_(.+)/);
+                        if (match) {
+                            const stationIndex = parseInt(match[1]) - 1;
+                            const field = match[2];
+                            
+                            practice.stations = practice.stations || [{}, {}, {}, {}];
+                            practice.stations[stationIndex] = practice.stations[stationIndex] || {};
+                            practice.stations[stationIndex][field] = value.trim();
+                        }
+                    }
+                    break;
+            }
+        });
+        
+        // Ensure stations array is complete
+        if (practice.stations) {
+            for (let j = 0; j < 4; j++) {
+                if (!practice.stations[j]) {
+                    practice.stations[j] = { name: '', desc: '', video: '' };
+                }
+            }
+        }
+        
+        validPractices.push(practice);
+    }
+    
+    return { errors, warnings, validPractices };
+}
+
+async function processCSVUpload(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+            try {
+                const csvText = e.target.result;
+                const data = parseCSV(csvText);
+                const validation = validateCSVData(data);
+                resolve(validation);
+            } catch (error) {
+                reject(error);
+            }
+        };
+        
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsText(file);
+    });
+}
+
+function showUploadResults(validation) {
+    const resultsDiv = document.getElementById('upload-results');
+    const summaryDiv = document.getElementById('upload-summary');
+    const errorsDiv = document.getElementById('upload-errors');
+    
+    resultsDiv.classList.remove('hidden');
+    
+    const { errors, warnings, validPractices } = validation;
+    
+    if (errors.length > 0) {
+        summaryDiv.className = 'p-3 rounded-lg bg-red-100 border border-red-300';
+        summaryDiv.innerHTML = `
+            <div class="flex items-center mb-2">
+                <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>
+                <span class="font-semibold text-red-800">Validation Failed</span>
+            </div>
+            <p class="text-red-700 text-sm">Please fix the following errors before uploading:</p>
+        `;
+        
+        errorsDiv.innerHTML = `
+            <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                <ul class="text-sm text-red-700 space-y-1">
+                    ${errors.map(error => `<li>• ${error}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+        errorsDiv.classList.remove('hidden');
+        
+        document.getElementById('confirm-upload').disabled = true;
+    } else {
+        summaryDiv.className = 'p-3 rounded-lg bg-green-100 border border-green-300';
+        summaryDiv.innerHTML = `
+            <div class="flex items-center mb-2">
+                <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                <span class="font-semibold text-green-800">Ready to Upload</span>
+            </div>
+            <p class="text-green-700 text-sm">Found ${validPractices.length} valid practices to update.</p>
+            ${warnings.length > 0 ? `
+                <div class="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                    <p class="text-yellow-800 text-xs font-semibold mb-1">Warnings:</p>
+                    <ul class="text-xs text-yellow-700 space-y-1">
+                        ${warnings.map(warning => `<li>• ${warning}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+        `;
+        
+        errorsDiv.classList.add('hidden');
+        document.getElementById('confirm-upload').disabled = false;
+        
+        // Store validated data for upload
+        csvUploadData = validPractices;
+    }
+}
+
+async function confirmCSVUpload() {
+    if (!csvUploadData) return;
+    
+    const confirmBtn = document.getElementById('confirm-upload');
+    const originalText = confirmBtn.innerHTML;
+    
+    try {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Uploading...';
+        
+        let updateCount = 0;
+        
+        for (const practiceData of csvUploadData) {
+            // Find existing practice
+            const existingPractice = practices.find(p => p.id === practiceData.id);
+            if (!existingPractice) continue;
+            
+            // Merge with existing data and add tracking
+            const updatedPractice = {
+                ...existingPractice,
+                ...practiceData,
+                lastUpdatedAt: new Date(),
+                lastUpdatedBy: currentUser?.displayName || currentUser?.email || 'CSV Upload'
+            };
+            
+            // Update in Firestore
+            await updateDoc(doc(db, "practices", existingPractice.docId), updatedPractice);
+            
+            // Log the change
+            await logPracticeChange(practiceData.id, practiceData.title, 'bulk_updated');
+            
+            updateCount++;
+        }
+        
+        // Show success message
+        const summaryDiv = document.getElementById('upload-summary');
+        summaryDiv.className = 'p-3 rounded-lg bg-blue-100 border border-blue-300';
+        summaryDiv.innerHTML = `
+            <div class="flex items-center mb-2">
+                <i class="fas fa-check-circle text-blue-600 mr-2"></i>
+                <span class="font-semibold text-blue-800">Upload Complete!</span>
+            </div>
+            <p class="text-blue-700 text-sm">Successfully updated ${updateCount} practices.</p>
+        `;
+        
+        // Reset upload state
+        setTimeout(() => {
+            resetCSVUpload();
+        }, 3000);
+        
+    } catch (error) {
+        console.error('Error uploading CSV data:', error);
+        alert('Error uploading practices. Please try again.');
+    } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = originalText;
+    }
+}
+
+function resetCSVUpload() {
+    csvUploadData = null;
+    document.getElementById('upload-results').classList.add('hidden');
+    document.getElementById('upload-prompt').classList.remove('hidden');
+    document.getElementById('upload-progress').classList.add('hidden');
+    document.getElementById('csv-file-input').value = '';
+}
+
 // --- UTILITY FUNCTIONS ---
 function printPractice() {
     window.print();
@@ -1367,16 +2117,22 @@ function printPractice() {
 
 // --- TAB MANAGEMENT ---
 function switchTab(tabName) {
+    // Update current admin tab
+    currentAdminTab = tabName;
+    
     // Hide all content areas
     document.getElementById('practices-content').classList.add('hidden');
     document.getElementById('coaches-content').classList.add('hidden');
     document.getElementById('activity-content').classList.add('hidden');
     
     // Remove active class from all tabs
-    document.querySelectorAll('.admin-tab').forEach(tab => {
-        tab.classList.remove('active');
-        tab.classList.add('text-gray-500');
-        tab.classList.remove('text-braves-navy', 'border-braves-red');
+    const allTabs = ['practices-tab', 'coaches-tab', 'activity-tab'];
+    allTabs.forEach(tabId => {
+        const tab = document.getElementById(tabId);
+        if (tab) {
+            tab.classList.remove('border-b-2', 'border-braves-red', 'text-braves-navy');
+            tab.classList.add('text-gray-500', 'hover:text-braves-navy');
+        }
     });
     
     // Show selected content and activate tab
@@ -1384,7 +2140,7 @@ function switchTab(tabName) {
     const selectedContent = document.getElementById(`${tabName}-content`);
     
     if (selectedTab && selectedContent) {
-        selectedTab.classList.add('active', 'text-braves-navy', 'border-braves-red');
+        selectedTab.classList.add('border-b-2', 'border-braves-red', 'text-braves-navy');
         selectedTab.classList.remove('text-gray-500');
         selectedContent.classList.remove('hidden');
         
@@ -1395,11 +2151,17 @@ function switchTab(tabName) {
             loadActivity();
         }
     }
+    
+    // Update URL and mode indicator
+    updateModeIndicator();
+    updateURL();
+    saveSessionState();
 }
 
 // --- EVENT LISTENERS ---
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM Content Loaded. Initializing app...");
+    initializeRouting();
     initializeAuth();
     loadPractices();
     
@@ -1518,6 +2280,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
+    // Exit admin (return to public view while staying logged in)
+    document.getElementById('exit-admin')?.addEventListener('click', () => {
+        exitAdminMode();
+    });
+    
     // Coach management
     document.getElementById('add-coach-form')?.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -1542,7 +2309,759 @@ document.addEventListener('DOMContentLoaded', () => {
             closeVideoSearch();
         }
     });
+    
+    // CSV Upload event listeners
+    document.getElementById('download-sample-csv')?.addEventListener('click', downloadSampleCSV);
+    
+    const csvUploadArea = document.getElementById('csv-upload-area');
+    const csvFileInput = document.getElementById('csv-file-input');
+    
+    csvUploadArea?.addEventListener('click', () => {
+        csvFileInput?.click();
+    });
+    
+    csvUploadArea?.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        csvUploadArea.classList.add('border-braves-red', 'bg-red-50');
+    });
+    
+    csvUploadArea?.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        csvUploadArea.classList.remove('border-braves-red', 'bg-red-50');
+    });
+    
+    csvUploadArea?.addEventListener('drop', (e) => {
+        e.preventDefault();
+        csvUploadArea.classList.remove('border-braves-red', 'bg-red-50');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0 && files[0].type === 'text/csv') {
+            handleCSVFile(files[0]);
+        } else {
+            alert('Please drop a valid CSV file.');
+        }
+    });
+    
+    csvFileInput?.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            handleCSVFile(file);
+        }
+    });
+    
+    document.getElementById('confirm-upload')?.addEventListener('click', confirmCSVUpload);
+    document.getElementById('cancel-upload')?.addEventListener('click', resetCSVUpload);
+    
+    // AI Assistant event listeners
+    document.getElementById('close-ai-modal')?.addEventListener('click', closeAIAssistant);
+    document.getElementById('suggest-drills-btn')?.addEventListener('click', handleSuggestDrills);
+    document.getElementById('auto-fill-btn')?.addEventListener('click', handleAutoFillDescriptions);
+    document.getElementById('summarize-btn')?.addEventListener('click', handleSummarizeForParents);
+    document.getElementById('retry-ai')?.addEventListener('click', retryAIAction);
+    document.getElementById('clear-results')?.addEventListener('click', clearAIResults);
+    
+    // AI input character counter
+    const aiInput = document.getElementById('ai-input');
+    const charCount = document.getElementById('char-count');
+    
+    aiInput?.addEventListener('input', () => {
+        const count = aiInput.value.length;
+        charCount.textContent = count;
+        
+        // Change color as approaching limit
+        if (count > 400) {
+            charCount.classList.add('text-red-500');
+            charCount.classList.remove('text-gray-400');
+        } else if (count > 300) {
+            charCount.classList.add('text-yellow-500');
+            charCount.classList.remove('text-gray-400', 'text-red-500');
+        } else {
+            charCount.classList.add('text-gray-400');
+            charCount.classList.remove('text-yellow-500', 'text-red-500');
+        }
+    });
+    
+    // Close AI modal when clicking outside
+    document.getElementById('ai-assistant-modal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'ai-assistant-modal') {
+            closeAIAssistant();
+        }
+    });
+    
+    // Coach invitation modal event listeners
+    document.getElementById('close-invitation-modal')?.addEventListener('click', closeCoachInvitationModal);
+    document.getElementById('close-invitation-done')?.addEventListener('click', closeCoachInvitationModal);
+    document.getElementById('copy-invitation-btn')?.addEventListener('click', copyInvitationToClipboard);
+    document.getElementById('send-another-invitation')?.addEventListener('click', addAnotherCoach);
+    
+    // Close invitation modal when clicking outside
+    document.getElementById('coach-invitation-modal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'coach-invitation-modal') {
+            closeCoachInvitationModal();
+        }
+    });
 });
+
+async function handleCSVFile(file) {
+    const uploadPrompt = document.getElementById('upload-prompt');
+    const uploadProgress = document.getElementById('upload-progress');
+    
+    uploadPrompt.classList.add('hidden');
+    uploadProgress.classList.remove('hidden');
+    
+    try {
+        const validation = await processCSVUpload(file);
+        showUploadResults(validation);
+    } catch (error) {
+        console.error('Error processing CSV:', error);
+        alert('Error processing CSV file. Please check the format and try again.');
+        resetCSVUpload();
+    } finally {
+        uploadProgress.classList.add('hidden');
+    }
+}
+
+// --- LOGIN STATUS FUNCTIONS ---
+function getLoginStatus(lastLogin) {
+    if (!lastLogin) {
+        return {
+            class: 'never-logged-in',
+            text: 'Never logged in',
+            tooltip: 'This coach has never logged into the system'
+        };
+    }
+    
+    const now = new Date();
+    const loginDate = lastLogin.toDate ? lastLogin.toDate() : new Date(lastLogin);
+    const timeDiff = now - loginDate;
+    const hoursDiff = timeDiff / (1000 * 60 * 60);
+    const daysDiff = timeDiff / (1000 * 60 * 60 * 24);
+    
+    if (hoursDiff < 24) {
+        return {
+            class: 'recently-active',
+            text: 'Recently active',
+            tooltip: 'Logged in within the last 24 hours'
+        };
+    } else if (daysDiff < 7) {
+        return {
+            class: 'active-this-week',
+            text: 'Active this week',
+            tooltip: 'Logged in within the last week'
+        };
+    } else if (daysDiff < 30) {
+        return {
+            class: 'inactive',
+            text: 'Inactive',
+            tooltip: 'Last login was over a week ago'
+        };
+    } else {
+        return {
+            class: 'long-inactive',
+            text: 'Long inactive',
+            tooltip: 'Last login was over a month ago'
+        };
+    }
+}
+
+function getLoginDisplay(lastLogin) {
+    if (!lastLogin) {
+        return {
+            relative: 'Never',
+            absolute: null
+        };
+    }
+    
+    const loginDate = lastLogin.toDate ? lastLogin.toDate() : new Date(lastLogin);
+    
+    return {
+        relative: getTimeAgo(loginDate),
+        absolute: formatDate(loginDate)
+    };
+}
+
+// --- PROFILE MANAGEMENT FUNCTIONS ---
+function getInitials(name) {
+    if (!name) return '?';
+    return name.split(' ')
+        .map(word => word.charAt(0).toUpperCase())
+        .slice(0, 2)
+        .join('');
+}
+
+function editCoachName(coachId) {
+    const coach = authorizedCoaches.find(c => c.id === coachId);
+    if (!coach) return;
+    
+    const displayNameEl = document.getElementById(`display-name-${coachId}`);
+    const currentName = coach.displayName || coach.email.split('@')[0];
+    
+    // Create inline editor
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentName;
+    input.className = 'coach-name-input';
+    input.maxLength = 50;
+    
+    // Create save/cancel buttons
+    const buttonsDiv = document.createElement('div');
+    buttonsDiv.className = 'name-edit-buttons';
+    
+    const saveBtn = document.createElement('button');
+    saveBtn.innerHTML = '<i class="fas fa-check"></i>';
+    saveBtn.className = 'save-name-btn';
+    saveBtn.onclick = () => saveCoachName(coachId, input.value.trim());
+    
+    const cancelBtn = document.createElement('button');
+    cancelBtn.innerHTML = '<i class="fas fa-times"></i>';
+    cancelBtn.className = 'cancel-name-btn';
+    cancelBtn.onclick = () => cancelNameEdit(coachId);
+    
+    buttonsDiv.appendChild(saveBtn);
+    buttonsDiv.appendChild(cancelBtn);
+    
+    // Replace display name with editor
+    displayNameEl.innerHTML = '';
+    displayNameEl.appendChild(input);
+    displayNameEl.appendChild(buttonsDiv);
+    
+    // Focus and select text
+    input.focus();
+    input.select();
+    
+    // Handle Enter key
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            saveCoachName(coachId, input.value.trim());
+        } else if (e.key === 'Escape') {
+            cancelNameEdit(coachId);
+        }
+    });
+}
+
+async function saveCoachName(coachId, newName) {
+    if (!newName) {
+        alert('Name cannot be empty');
+        return;
+    }
+    
+    try {
+        await updateDoc(doc(db, "authorized_coaches", coachId), {
+            displayName: newName
+        });
+        
+        // Update local data and re-render
+        const coach = authorizedCoaches.find(c => c.id === coachId);
+        if (coach) {
+            coach.displayName = newName;
+        }
+        
+        renderCoaches();
+        
+    } catch (error) {
+        console.error('Error updating coach name:', error);
+        alert('Error updating name. Please try again.');
+        cancelNameEdit(coachId);
+    }
+}
+
+function cancelNameEdit(coachId) {
+    renderCoaches();
+}
+
+// --- AI ASSISTANT FUNCTIONALITY ---
+let currentAIPractice = null;
+let lastAIAction = null;
+
+function openAIAssistant(practiceId) {
+    const practice = practices.find(p => p.docId === practiceId);
+    if (!practice) return;
+    
+    currentAIPractice = practice;
+    
+    const modal = document.getElementById('ai-assistant-modal');
+    const input = document.getElementById('ai-input');
+    const charCount = document.getElementById('char-count');
+    
+    // Reset modal state
+    hideAllAIStates();
+    input.value = '';
+    charCount.textContent = '0';
+    
+    modal.classList.remove('hidden');
+    input.focus();
+}
+
+function closeAIAssistant() {
+    const modal = document.getElementById('ai-assistant-modal');
+    modal.classList.add('hidden');
+    currentAIPractice = null;
+    lastAIAction = null;
+    hideAllAIStates();
+}
+
+function hideAllAIStates() {
+    document.getElementById('ai-results').classList.add('hidden');
+    document.getElementById('ai-loading').classList.add('hidden');
+    document.getElementById('ai-error').classList.add('hidden');
+}
+
+function showAILoading() {
+    hideAllAIStates();
+    document.getElementById('ai-loading').classList.remove('hidden');
+}
+
+function showAIError(message) {
+    hideAllAIStates();
+    const errorDiv = document.getElementById('ai-error');
+    const messageEl = document.getElementById('ai-error-message');
+    messageEl.textContent = message;
+    errorDiv.classList.remove('hidden');
+}
+
+function showAIResults(content) {
+    hideAllAIStates();
+    const resultsDiv = document.getElementById('ai-results');
+    const contentDiv = document.getElementById('ai-results-content');
+    contentDiv.innerHTML = content;
+    resultsDiv.classList.remove('hidden');
+}
+
+async function handleSuggestDrills() {
+    const input = document.getElementById('ai-input');
+    const teamStruggles = input.value.trim();
+    
+    if (!teamStruggles) {
+        alert('Please describe what your team is struggling with first.');
+        input.focus();
+        return;
+    }
+    
+    lastAIAction = 'suggest-drills';
+    showAILoading();
+    
+    try {
+        const drills = await aiAssistant.suggestDrillVariations(teamStruggles);
+        
+        let html = `
+            <div class="space-y-4">
+                <div class="flex items-center justify-between mb-4">
+                    <h5 class="font-semibold text-braves-navy">Suggested Drills for: "${teamStruggles}"</h5>
+                    <div class="text-xs text-gray-500">
+                        ${drills.length} drill${drills.length !== 1 ? 's' : ''} found
+                    </div>
+                </div>
+        `;
+        
+        drills.forEach((drill, index) => {
+            html += `
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div class="flex items-start justify-between mb-3">
+                        <h6 class="font-semibold text-gray-800">${drill.name}</h6>
+                        <span class="text-xs bg-braves-red text-white px-2 py-1 rounded">${drill.keyFocus}</span>
+                    </div>
+                    <p class="text-gray-700 text-sm mb-3">${drill.description}</p>
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <span class="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
+                            <i class="fas fa-tools mr-1"></i>${drill.equipment}
+                        </span>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="searchVideosFromAI('${drill.youtubeSearch}')" 
+                                class="bg-braves-navy text-white px-3 py-1 rounded text-xs hover:bg-braves-red transition-all">
+                            <i class="fas fa-search mr-1"></i>Find Videos
+                        </button>
+                        <button onclick="copyDrillToClipboard('${drill.name}', '${drill.description.replace(/'/g, "\\'")}', '${drill.equipment}')" 
+                                class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-700 transition-all">
+                            <i class="fas fa-copy mr-1"></i>Copy Drill
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+            </div>
+            <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h6 class="font-semibold text-blue-800 mb-2">💡 How to Use These Drills</h6>
+                <ul class="text-blue-700 text-sm space-y-1">
+                    <li>• Replace any existing station with these new drills</li>
+                    <li>• Use "Find Videos" to get instructional content</li>
+                    <li>• Copy drill details to add to your practice notes</li>
+                    <li>• Modify descriptions to match your team's skill level</li>
+                </ul>
+            </div>
+        `;
+        
+        showAIResults(html);
+        
+    } catch (error) {
+        console.error('Error getting drill suggestions:', error);
+        showAIError(error.message || 'Failed to generate drill suggestions. Please try again.');
+    }
+}
+
+async function handleAutoFillDescriptions() {
+    if (!currentAIPractice) {
+        showAIError('No practice selected. Please try again.');
+        return;
+    }
+    
+    const input = document.getElementById('ai-input');
+    const context = input.value.trim();
+    
+    lastAIAction = 'auto-fill';
+    showAILoading();
+    
+    try {
+        // Get drill names from current practice
+        const drillNames = [];
+        if (currentAIPractice.stations) {
+            currentAIPractice.stations.forEach(station => {
+                if (station.name) drillNames.push(station.name);
+            });
+        }
+        
+        if (drillNames.length === 0) {
+            showAIError('No drill names found in this practice to generate descriptions for.');
+            return;
+        }
+        
+        let html = `
+            <div class="space-y-4">
+                <div class="flex items-center justify-between mb-4">
+                    <h5 class="font-semibold text-braves-navy">Generated Descriptions for Practice ${currentAIPractice.id}</h5>
+                    <div class="text-xs text-gray-500">
+                        ${drillNames.length} drill${drillNames.length !== 1 ? 's' : ''} processed
+                    </div>
+                </div>
+        `;
+        
+        for (const drillName of drillNames) {
+            try {
+                const description = await aiAssistant.autoFillDescription(drillName, context);
+                
+                html += `
+                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <div class="flex items-start justify-between mb-3">
+                            <h6 class="font-semibold text-gray-800">${drillName}</h6>
+                            <button onclick="copyDescriptionToClipboard('${description.replace(/'/g, "\\'")}', '${drillName}')" 
+                                    class="text-xs bg-braves-red text-white px-2 py-1 rounded hover:bg-braves-red-hover transition-all">
+                                <i class="fas fa-copy mr-1"></i>Copy
+                            </button>
+                        </div>
+                        <p class="text-gray-700 text-sm">${description}</p>
+                    </div>
+                `;
+            } catch (error) {
+                console.error(`Error generating description for ${drillName}:`, error);
+                html += `
+                    <div class="bg-red-50 rounded-lg p-4 border border-red-200">
+                        <h6 class="font-semibold text-red-800">${drillName}</h6>
+                        <p class="text-red-700 text-sm">Failed to generate description for this drill.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        html += `
+            </div>
+            <div class="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
+                <h6 class="font-semibold text-green-800 mb-2">✅ Next Steps</h6>
+                <ul class="text-green-700 text-sm space-y-1">
+                    <li>• Copy descriptions you like and paste them into the practice editor</li>
+                    <li>• Edit descriptions to match your coaching style</li>
+                    <li>• Add specific coaching cues or safety reminders</li>
+                </ul>
+            </div>
+        `;
+        
+        showAIResults(html);
+        
+    } catch (error) {
+        console.error('Error generating descriptions:', error);
+        showAIError(error.message || 'Failed to generate descriptions. Please try again.');
+    }
+}
+
+async function handleSummarizeForParents() {
+    if (!currentAIPractice) {
+        showAIError('No practice selected. Please try again.');
+        return;
+    }
+    
+    lastAIAction = 'summarize';
+    showAILoading();
+    
+    try {
+        const summary = await aiAssistant.summarizeForParents(currentAIPractice);
+        
+        const html = `
+            <div class="space-y-4">
+                <div class="flex items-center justify-between mb-4">
+                    <h5 class="font-semibold text-braves-navy">Parent Summary for Practice ${currentAIPractice.id}</h5>
+                    <button onclick="copyParentSummary('${summary.replace(/'/g, "\\'")}', '${currentAIPractice.title}')" 
+                            class="bg-braves-red text-white px-3 py-2 rounded text-sm hover:bg-braves-red-hover transition-all">
+                        <i class="fas fa-copy mr-1"></i>Copy Summary
+                    </button>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div class="flex items-center mb-3">
+                        <i class="fas fa-envelope text-braves-red mr-2"></i>
+                        <span class="font-semibold text-gray-800">Ready-to-Send Message</span>
+                    </div>
+                    <div class="bg-white p-4 rounded border border-gray-300 font-mono text-sm text-gray-700 leading-relaxed">
+                        ${summary.replace(/\n/g, '<br>')}
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                        <h6 class="font-semibold text-blue-800 mb-2">📱 How to Use</h6>
+                        <ul class="text-blue-700 text-xs space-y-1">
+                            <li>• Copy the message above</li>
+                            <li>• Paste into team group chat</li>
+                            <li>• Send via email to parents</li>
+                            <li>• Post on team communication app</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+                        <h6 class="font-semibold text-green-800 mb-2">✨ Benefits</h6>
+                        <ul class="text-green-700 text-xs space-y-1">
+                            <li>• Keeps parents engaged</li>
+                            <li>• Shows practice structure</li>
+                            <li>• Highlights skill development</li>
+                            <li>• Professional communication</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        showAIResults(html);
+        
+    } catch (error) {
+        console.error('Error generating parent summary:', error);
+        showAIError(error.message || 'Failed to generate parent summary. Please try again.');
+    }
+}
+
+function retryAIAction() {
+    if (!lastAIAction) return;
+    
+    switch (lastAIAction) {
+        case 'suggest-drills':
+            handleSuggestDrills();
+            break;
+        case 'auto-fill':
+            handleAutoFillDescriptions();
+            break;
+        case 'summarize':
+            handleSummarizeForParents();
+            break;
+    }
+}
+
+function clearAIResults() {
+    hideAllAIStates();
+    lastAIAction = null;
+}
+
+// Helper functions for AI results
+function searchVideosFromAI(searchTerm) {
+    // Close AI modal and open video search
+    closeAIAssistant();
+    
+    // Create a temporary input for video search
+    const tempInput = document.createElement('input');
+    tempInput.id = 'temp-ai-video-search';
+    tempInput.style.display = 'none';
+    document.body.appendChild(tempInput);
+    
+    // Trigger video search
+    searchVideos('temp-ai-video-search', searchTerm);
+    
+    // Clean up temp input after search
+    setTimeout(() => {
+        const temp = document.getElementById('temp-ai-video-search');
+        if (temp) temp.remove();
+    }, 1000);
+}
+
+async function copyDrillToClipboard(name, description, equipment) {
+    const drillText = `**${name}**\n\n${description}\n\nEquipment: ${equipment}`;
+    
+    try {
+        await navigator.clipboard.writeText(drillText);
+        showToast('Drill copied to clipboard!', 'success');
+    } catch (error) {
+        console.error('Failed to copy drill:', error);
+        showToast('Failed to copy drill. Please try again.', 'error');
+    }
+}
+
+async function copyDescriptionToClipboard(description, drillName) {
+    try {
+        await navigator.clipboard.writeText(description);
+        showToast(`Description for "${drillName}" copied to clipboard!`, 'success');
+    } catch (error) {
+        console.error('Failed to copy description:', error);
+        showToast('Failed to copy description. Please try again.', 'error');
+    }
+}
+
+async function copyParentSummary(summary, practiceTitle) {
+    try {
+        await navigator.clipboard.writeText(summary);
+        showToast(`Parent summary for "${practiceTitle}" copied to clipboard!`, 'success');
+    } catch (error) {
+        console.error('Failed to copy summary:', error);
+        showToast('Failed to copy summary. Please try again.', 'error');
+    }
+}
+
+function showToast(message, type = 'info') {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium transition-all duration-300 transform translate-x-full`;
+    
+    // Set color based on type
+    switch (type) {
+        case 'success':
+            toast.classList.add('bg-green-500');
+            break;
+        case 'error':
+            toast.classList.add('bg-red-500');
+            break;
+        default:
+            toast.classList.add('bg-blue-500');
+    }
+    
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.classList.remove('translate-x-full');
+    }, 100);
+    
+    // Animate out and remove
+    setTimeout(() => {
+        toast.classList.add('translate-x-full');
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// --- COACH INVITATION MODAL FUNCTIONALITY ---
+function showCoachInvitationModal(coachEmail) {
+    const modal = document.getElementById('coach-invitation-modal');
+    const emailSpan = document.getElementById('invitation-coach-email');
+    const invitationText = document.getElementById('invitation-text');
+    
+    // Set coach email
+    emailSpan.textContent = coachEmail;
+    
+    // Generate invitation text
+    const invitationMessage = generateInvitationText(coachEmail);
+    invitationText.textContent = invitationMessage;
+    
+    // Show modal
+    modal.classList.remove('hidden');
+}
+
+function generateInvitationText(coachEmail) {
+    // Get current domain for portal URL
+    const portalUrl = window.location.origin + window.location.pathname;
+    
+    return `🏆 Welcome to the 6U Braves Baseball Practice Portal!
+
+Hi there!
+
+You've been invited to join our coaching team for the 6U Atlanta Braves Baseball Practice Portal. This powerful platform will help you create amazing practice experiences for our young players.
+
+🔑 HOW TO ACCESS:
+1. Visit: ${portalUrl}
+2. Scroll to the bottom and click the red "Admin" button
+3. Click "Sign in with Google"
+4. Use this email address: ${coachEmail}
+
+✨ WHAT YOU CAN DO:
+• Edit all 8 progressive practice plans
+• Use AI Assistant to generate drill ideas and descriptions
+• Search and add instructional videos to drills
+• View practice change activity and team collaboration
+• Access mobile-optimized interface perfect for phones
+
+🎯 GETTING STARTED:
+Once you're signed in, you'll see the admin dashboard with tabs for Practices, Coaches, and Activity. Click "Edit" on any practice to start customizing content for our team.
+
+The platform is designed to be mobile-first, so you can easily edit practices on your phone during or after practice sessions.
+
+📱 NEED HELP?
+If you have any questions or trouble accessing the portal, feel free to reach out. We're excited to have you on the coaching team!
+
+Go Braves! ⚾
+
+---
+This invitation was sent from the 6U Braves Baseball Practice Portal`;
+}
+
+function closeCoachInvitationModal() {
+    const modal = document.getElementById('coach-invitation-modal');
+    modal.classList.add('hidden');
+}
+
+async function copyInvitationToClipboard() {
+    const invitationText = document.getElementById('invitation-text');
+    const copyBtn = document.getElementById('copy-invitation-btn');
+    const originalText = copyBtn.innerHTML;
+    
+    try {
+        await navigator.clipboard.writeText(invitationText.textContent);
+        
+        // Show success feedback
+        copyBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Copied!';
+        copyBtn.classList.remove('bg-braves-red');
+        copyBtn.classList.add('bg-green-500');
+        
+        showToast('Invitation copied to clipboard!', 'success');
+        
+        // Reset button after 2 seconds
+        setTimeout(() => {
+            copyBtn.innerHTML = originalText;
+            copyBtn.classList.remove('bg-green-500');
+            copyBtn.classList.add('bg-braves-red');
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Failed to copy invitation:', error);
+        showToast('Failed to copy invitation. Please try again.', 'error');
+    }
+}
+
+function addAnotherCoach() {
+    // Close invitation modal and focus on email input
+    closeCoachInvitationModal();
+    
+    // Switch to coaches tab if not already there
+    if (currentAdminTab !== 'coaches') {
+        switchTab('coaches');
+    }
+    
+    // Focus on the email input
+    setTimeout(() => {
+        const emailInput = document.getElementById('new-coach-email');
+        if (emailInput) {
+            emailInput.focus();
+        }
+    }, 100);
+}
 
 // Make functions globally available
 window.openVideo = openVideo;
@@ -1559,3 +3078,16 @@ window.useVideo = useVideo;
 window.previewVideo = previewVideo;
 window.closeVideoSearch = closeVideoSearch;
 window.switchTab = switchTab;
+window.editCoachName = editCoachName;
+window.saveCoachName = saveCoachName;
+window.cancelNameEdit = cancelNameEdit;
+window.openAIAssistant = openAIAssistant;
+window.closeAIAssistant = closeAIAssistant;
+window.handleSuggestDrills = handleSuggestDrills;
+window.handleAutoFillDescriptions = handleAutoFillDescriptions;
+window.handleSummarizeForParents = handleSummarizeForParents;
+window.retryAIAction = retryAIAction;
+window.clearAIResults = clearAIResults;
+window.copyDrillToClipboard = copyDrillToClipboard;
+window.copyDescriptionToClipboard = copyDescriptionToClipboard;
+window.copyParentSummary = copyParentSummary;
