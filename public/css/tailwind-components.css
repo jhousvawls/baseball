@@ -85,7 +85,7 @@
   /* ===== PRACTICE BLOCKS ===== */
   
   .practice-section {
-    @apply mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200;
+    @apply mb-6;
   }
   
   .section-header {
@@ -110,6 +110,21 @@
   
   .section-description {
     @apply text-gray-700 leading-relaxed;
+  }
+  
+  /* ===== HOMEWORK SECTION ===== */
+  
+  .homework-section {
+    @apply mt-8;
+  }
+  
+  .homework-divider {
+    border-top: 3px dotted var(--braves-red);
+    margin-bottom: 1.5rem;
+  }
+  
+  .homework-video-btn {
+    @apply bg-braves-red text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-braves-red-hover transition-all;
   }
   
   .station-block {

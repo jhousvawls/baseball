@@ -723,19 +723,22 @@ function displayPractice(practiceNumber) {
     // Parent Homework section
     if (practice.homework) {
         html += `
-            <div style="border-top: 3px dotted #dc2626; padding-top: 24px; margin-top: 32px;">
-                <h3 class="text-xl font-bold text-braves-navy mb-4 flex items-center">
-                    <i class="fas fa-home mr-3 text-braves-navy"></i>
-                    Parent Homework
-                </h3>
-                <h4 class="font-semibold text-gray-800 mb-3">${practice.homework.title}</h4>
-                <p class="text-gray-700 mb-4">${practice.homework.desc}</p>
-                ${practice.homework.video ? `
-                    <button onclick="openVideo('${practice.homework.video}', '${practice.homework.title}')" 
-                            class="video-link bg-red-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-red-700 transition-all">
-                        <i class="fas fa-lightbulb mr-2"></i>Watch Homework Drill
-                    </button>
-                ` : ''}
+            <div class="homework-section">
+                <div class="homework-divider"></div>
+                <div class="practice-section">
+                    <div class="section-header">
+                        <i class="fas fa-home section-icon"></i>
+                        <h3 class="section-title">Parent Homework</h3>
+                    </div>
+                    <h4 class="font-semibold text-gray-800 mb-3">${practice.homework.title}</h4>
+                    <p class="text-gray-700 mb-4">${practice.homework.desc}</p>
+                    ${practice.homework.video ? `
+                        <button onclick="openVideo('${practice.homework.video}', '${practice.homework.title}')" 
+                                class="homework-video-btn">
+                            <i class="fas fa-lightbulb mr-2"></i>Watch Homework Drill
+                        </button>
+                    ` : ''}
+                </div>
             </div>
         `;
     }
