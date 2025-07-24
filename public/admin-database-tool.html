@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baseball Practice Admin Database Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1e3a8a;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+        .section h2 {
+            color: #dc2626;
+            margin-top: 0;
+        }
+        button {
+            background-color: #dc2626;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 10px 10px 0;
+        }
+        button:hover {
+            background-color: #b91c1c;
+        }
+        button:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+        .log {
+            background-color: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            color: #059669;
+        }
+        .error {
+            color: #dc2626;
+        }
+        .info {
+            color: #2563eb;
+        }
+        .warning {
+            color: #d97706;
+        }
+        .credentials {
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background-color: #d1fae5;
+            border: 1px solid #10b981;
+        }
+        .status.error {
+            background-color: #fee2e2;
+            border: 1px solid #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚾ Baseball Practice Admin Database Tool</h1>
+        
+        <div class="section">
+            <h2>🔧 Step 1: Create Test Super Admin</h2>
+            <p>This will create a test super admin user that can access the admin panel.</p>
+            <div class="credentials">
+                <strong>Test Admin Credentials:</strong><br>
+                📧 Email: john@ahsodesigns.com<br>
+                🔑 Password: TestAdmin2025!
+            </div>
+            <button id="createAdminBtn" onclick="createTestAdmin()">Create Test Admin User</button>
+            <div id="adminStatus"></div>
+            <div id="adminLog" class="log" style="display: none;"></div>
+        </div>
+
+        <div class="section">
+            <h2>⏰ Step 2: Update Practice Timing</h2>
+            <p>This will update all 8 practices in the database with the correct 60-minute timing structure.</p>
+            <div style="background-color: #f0f9ff; padding: 15px; border-radius: 6px; margin: 15px 0;">
+                <strong>New Timing Structure:</strong><br>
+                • Warmup: 5 minutes<br>
+                • Skill Stations: 35 minutes (8-9 mins each)<br>
+                • Game (Finisher): 15 minutes<br>
+                • Team Huddle & High Fives: 5 minutes<br>
+                • <strong>Total: 60 minutes ✅</strong>
+            </div>
+            <button id="updateTimingBtn" onclick="updatePracticeTiming()">Update Practice Timing</button>
+            <div id="timingStatus"></div>
+            <div id="timingLog" class="log" style="display: none;"></div>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Step 3: Test Admin Login</h2>
+            <p>After creating the admin user, test the login functionality.</p>
+            <button onclick="testAdminLogin()">Test Admin Login</button>
+            <button onclick="openLiveSite()">Open Live Site</button>
+            <div id="testStatus"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        import { getFirestore, collection, getDocs, doc, updateDoc, setDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDbFiqPG91hq5_ie2vgVQ6ex98Cp4At52U",
+            authDomain: "baseball-practice-generator.firebaseapp.com",
+            projectId: "baseball-practice-generator",
+            storageBucket: "baseball-practice-generator.firebasestorage.app",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Test admin credentials
+        const TEST_ADMIN = {
+            email: 'john@ahsodesigns.com',
+            password: 'TestAdmin2025!',
+            displayName: 'Test Super Admin'
+        };
+
+        // Make functions globally available
+        window.createTestAdmin = async function() {
+            const btn = document.getElementById('createAdminBtn');
+            const status = document.getElementById('adminStatus');
+            const log = document.getElementById('adminLog');
+            
+            btn.disabled = true;
+            btn.textContent = 'Creating...';
+            log.style.display = 'block';
+            log.innerHTML = '';
+            
+            function addLog(message, type = 'info') {
+                const timestamp = new Date().toLocaleTimeString();
+                log.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+                log.scrollTop = log.scrollHeight;
+            }
+
+            try {
+                addLog('🔧 Starting test admin creation...', 'info');
+                
+                // Try to create the user account
+                let userCredential;
+                try {
+                    addLog('👤 Creating Firebase Auth user...', 'info');
+                    userCredential = await createUserWithEmailAndPassword(auth, TEST_ADMIN.email, TEST_ADMIN.password);
+                    addLog('✅ Firebase Auth user created successfully', 'success');
+                } catch (error) {
+                    if (error.code === 'auth/email-already-in-use') {
+                        addLog('ℹ️ User already exists, signing in instead...', 'warning');
+                        userCredential = await signInWithEmailAndPassword(auth, TEST_ADMIN.email, TEST_ADMIN.password);
+                        addLog('✅ Signed in to existing user', 'success');
+                    } else {
+                        throw error;
+                    }
+                }
+                
+                addLog('📝 Adding to authorized coaches collection...', 'info');
+                
+                // Add to authorized_coaches collection
+                const coachData = {
+                    email: TEST_ADMIN.email,
+                    displayName: TEST_ADMIN.displayName,
+                    photoURL: null,
+                    addedBy: 'system',
+                    addedAt: new Date(),
+                    lastLogin: new Date(),
+                    isActive: true,
+                    isSuperAdmin: true
+                };
+                
+                await setDoc(doc(db, "authorized_coaches", userCredential.user.uid), coachData);
+                addLog('✅ Added to authorized coaches collection', 'success');
+                
+                addLog('🎉 TEST SUPER ADMIN CREATED SUCCESSFULLY!', 'success');
+                
+                status.innerHTML = '<div class="status success">✅ Test admin user created successfully!</div>';
+                
+            } catch (error) {
+                addLog(`❌ Error: ${error.message}`, 'error');
+                status.innerHTML = '<div class="status error">❌ Failed to create test admin user</div>';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Create Test Admin User';
+            }
+        };
+
+        window.updatePracticeTiming = async function() {
+            const btn = document.getElementById('updateTimingBtn');
+            const status = document.getElementById('timingStatus');
+            const log = document.getElementById('timingLog');
+            
+            btn.disabled = true;
+            btn.textContent = 'Updating...';
+            log.style.display = 'block';
+            log.innerHTML = '';
+            
+            function addLog(message, type = 'info') {
+                const timestamp = new Date().toLocaleTimeString();
+                log.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+                log.scrollTop = log.scrollHeight;
+            }
+
+            try {
+                addLog('⏰ Starting practice timing updates...', 'info');
+                
+                // Get all practices
+                addLog('📚 Loading practices from database...', 'info');
+                const practicesRef = collection(db, "practices");
+                const snapshot = await getDocs(practicesRef);
+                
+                if (snapshot.empty) {
+                    addLog('❌ No practices found in database', 'error');
+                    status.innerHTML = '<div class="status error">❌ No practices found in database</div>';
+                    return;
+                }
+                
+                addLog(`📋 Found ${snapshot.size} practices to update`, 'info');
+                
+                // Update each practice
+                let updateCount = 0;
+                for (const docSnapshot of snapshot.docs) {
+                    const practiceData = docSnapshot.data();
+                    const practiceId = practiceData.id;
+                    const practiceTitle = practiceData.title;
+                    
+                    addLog(`🔄 Updating Practice ${practiceId}: ${practiceTitle}`, 'info');
+                    
+                    // Prepare updates
+                    const updates = {
+                        stationTime: 35,
+                        stationInstructions: "4 stations, 8-9 minutes each. Focus on fun and participation over perfection.",
+                        totalTime: 60,
+                        finisher: {
+                            ...practiceData.finisher,
+                            duration: 15
+                        },
+                        wrapup: {
+                            ...practiceData.wrapup,
+                            duration: 5
+                        }
+                    };
+                    
+                    // Update the document
+                    await updateDoc(docSnapshot.ref, updates);
+                    addLog(`✅ Updated Practice ${practiceId}`, 'success');
+                    updateCount++;
+                }
+                
+                addLog('🎉 ALL PRACTICES UPDATED SUCCESSFULLY!', 'success');
+                addLog('📊 New timing structure applied to all practices', 'success');
+                
+                status.innerHTML = `<div class="status success">✅ Successfully updated ${updateCount} practices with correct timing!</div>`;
+                
+            } catch (error) {
+                addLog(`❌ Error: ${error.message}`, 'error');
+                status.innerHTML = '<div class="status error">❌ Failed to update practice timing</div>';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Update Practice Timing';
+            }
+        };
+
+        window.testAdminLogin = async function() {
+            const status = document.getElementById('testStatus');
+            
+            try {
+                status.innerHTML = '<div class="status">🔄 Testing admin login...</div>';
+                
+                await signInWithEmailAndPassword(auth, TEST_ADMIN.email, TEST_ADMIN.password);
+                status.innerHTML = '<div class="status success">✅ Admin login test successful!</div>';
+                
+                // Sign out after test
+                setTimeout(async () => {
+                    await signOut(auth);
+                    status.innerHTML += '<div class="status">ℹ️ Signed out after test</div>';
+                }, 2000);
+                
+            } catch (error) {
+                status.innerHTML = `<div class="status error">❌ Login test failed: ${error.message}</div>`;
+            }
+        };
+
+        window.openLiveSite = function() {
+            window.open('https://baseball-practice-generator.web.app', '_blank');
+        };
+    </script>
+</body>
+</html>

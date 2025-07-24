@@ -823,6 +823,11 @@ function renderAdminPractices() {
     practices.forEach(practice => {
         const card = document.createElement('div');
         card.className = 'bg-white rounded-xl shadow-md p-6';
+        
+        // Format last updated info
+        const lastUpdatedDate = practice.lastUpdatedAt ? formatDate(practice.lastUpdatedAt.toDate()) : formatDate(new Date());
+        const lastUpdatedBy = practice.lastUpdatedBy || 'System';
+        
         card.innerHTML = `
             <div class="flex items-center justify-between mb-4">
                 <div>
@@ -838,7 +843,8 @@ function renderAdminPractices() {
             </div>
             <div class="text-sm text-gray-600">
                 <p><strong>Stations:</strong> ${practice.stations ? practice.stations.length : 0}</p>
-                <p><strong>Last Updated:</strong> ${formatDate(new Date())}</p>
+                <p><strong>Last Updated:</strong> ${lastUpdatedDate}</p>
+                <p><strong>Last Updated By:</strong> ${lastUpdatedBy}</p>
             </div>
         `;
         container.appendChild(card);
@@ -1056,7 +1062,10 @@ async function savePractice() {
                 title: document.getElementById('homework-title').value,
                 desc: document.getElementById('homework-desc').value,
                 video: document.getElementById('homework-video').value
-            }
+            },
+            // Add tracking fields
+            lastUpdatedAt: new Date(),
+            lastUpdatedBy: currentUser?.displayName || currentUser?.email || 'Unknown User'
         };
         
         // Collect stations data
