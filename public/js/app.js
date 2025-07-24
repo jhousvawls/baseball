@@ -7,6 +7,7 @@ import { getAuth, signInWithEmailAndPassword, signInWithPopup, signInWithRedirec
 import { FIREBASE_CONFIG } from '../js/config/firebase.js';
 import { showConfirmation } from '../js/modules/confirmation.js';
 import { videoSearchManager } from '../js/modules/videoSearch.js';
+import { aiAssistant } from '../js/modules/aiAssistant.js';
 import { SUPER_ADMIN_EMAIL, YOUTUBE_API_KEY, YOUTUBE_API_BASE_URL } from '../js/utils/constants.js';
 import { extractVideoId, formatDate, getTimeAgo, getErrorMessage, showAdminError } from '../js/utils/helpers.js';
 
@@ -836,6 +837,10 @@ function renderAdminPractices() {
                     <p class="text-sm text-gray-600">Practice ${practice.id} • ${practice.totalTime} minutes</p>
                 </div>
                 <div class="flex space-x-2">
+                    <button onclick="openAIAssistant('${practice.docId}')" 
+                            class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-2 rounded-lg text-sm hover:from-purple-600 hover:to-pink-600 transition-all">
+                        <i class="fas fa-sparkles mr-1"></i>AI Assistant
+                    </button>
                     <button onclick="editPractice('${practice.docId}')" 
                             class="bg-braves-navy text-white px-3 py-2 rounded-lg text-sm hover:bg-braves-red transition-all">
                         <i class="fas fa-edit mr-1"></i>Edit
@@ -2065,6 +2070,42 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.getElementById('confirm-upload')?.addEventListener('click', confirmCSVUpload);
     document.getElementById('cancel-upload')?.addEventListener('click', resetCSVUpload);
+    
+    // AI Assistant event listeners
+    document.getElementById('close-ai-modal')?.addEventListener('click', closeAIAssistant);
+    document.getElementById('suggest-drills-btn')?.addEventListener('click', handleSuggestDrills);
+    document.getElementById('auto-fill-btn')?.addEventListener('click', handleAutoFillDescriptions);
+    document.getElementById('summarize-btn')?.addEventListener('click', handleSummarizeForParents);
+    document.getElementById('retry-ai')?.addEventListener('click', retryAIAction);
+    document.getElementById('clear-results')?.addEventListener('click', clearAIResults);
+    
+    // AI input character counter
+    const aiInput = document.getElementById('ai-input');
+    const charCount = document.getElementById('char-count');
+    
+    aiInput?.addEventListener('input', () => {
+        const count = aiInput.value.length;
+        charCount.textContent = count;
+        
+        // Change color as approaching limit
+        if (count > 400) {
+            charCount.classList.add('text-red-500');
+            charCount.classList.remove('text-gray-400');
+        } else if (count > 300) {
+            charCount.classList.add('text-yellow-500');
+            charCount.classList.remove('text-gray-400', 'text-red-500');
+        } else {
+            charCount.classList.add('text-gray-400');
+            charCount.classList.remove('text-yellow-500', 'text-red-500');
+        }
+    });
+    
+    // Close AI modal when clicking outside
+    document.getElementById('ai-assistant-modal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'ai-assistant-modal') {
+            closeAIAssistant();
+        }
+    });
 });
 
 async function handleCSVFile(file) {
@@ -2175,6 +2216,395 @@ function cancelNameEdit(coachId) {
     renderCoaches();
 }
 
+// --- AI ASSISTANT FUNCTIONALITY ---
+let currentAIPractice = null;
+let lastAIAction = null;
+
+function openAIAssistant(practiceId) {
+    const practice = practices.find(p => p.docId === practiceId);
+    if (!practice) return;
+    
+    currentAIPractice = practice;
+    
+    const modal = document.getElementById('ai-assistant-modal');
+    const input = document.getElementById('ai-input');
+    const charCount = document.getElementById('char-count');
+    
+    // Reset modal state
+    hideAllAIStates();
+    input.value = '';
+    charCount.textContent = '0';
+    
+    modal.classList.remove('hidden');
+    input.focus();
+}
+
+function closeAIAssistant() {
+    const modal = document.getElementById('ai-assistant-modal');
+    modal.classList.add('hidden');
+    currentAIPractice = null;
+    lastAIAction = null;
+    hideAllAIStates();
+}
+
+function hideAllAIStates() {
+    document.getElementById('ai-results').classList.add('hidden');
+    document.getElementById('ai-loading').classList.add('hidden');
+    document.getElementById('ai-error').classList.add('hidden');
+}
+
+function showAILoading() {
+    hideAllAIStates();
+    document.getElementById('ai-loading').classList.remove('hidden');
+}
+
+function showAIError(message) {
+    hideAllAIStates();
+    const errorDiv = document.getElementById('ai-error');
+    const messageEl = document.getElementById('ai-error-message');
+    messageEl.textContent = message;
+    errorDiv.classList.remove('hidden');
+}
+
+function showAIResults(content) {
+    hideAllAIStates();
+    const resultsDiv = document.getElementById('ai-results');
+    const contentDiv = document.getElementById('ai-results-content');
+    contentDiv.innerHTML = content;
+    resultsDiv.classList.remove('hidden');
+}
+
+async function handleSuggestDrills() {
+    const input = document.getElementById('ai-input');
+    const teamStruggles = input.value.trim();
+    
+    if (!teamStruggles) {
+        alert('Please describe what your team is struggling with first.');
+        input.focus();
+        return;
+    }
+    
+    lastAIAction = 'suggest-drills';
+    showAILoading();
+    
+    try {
+        const drills = await aiAssistant.suggestDrillVariations(teamStruggles);
+        
+        let html = `
+            <div class="space-y-4">
+                <div class="flex items-center justify-between mb-4">
+                    <h5 class="font-semibold text-braves-navy">Suggested Drills for: "${teamStruggles}"</h5>
+                    <div class="text-xs text-gray-500">
+                        ${drills.length} drill${drills.length !== 1 ? 's' : ''} found
+                    </div>
+                </div>
+        `;
+        
+        drills.forEach((drill, index) => {
+            html += `
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div class="flex items-start justify-between mb-3">
+                        <h6 class="font-semibold text-gray-800">${drill.name}</h6>
+                        <span class="text-xs bg-braves-red text-white px-2 py-1 rounded">${drill.keyFocus}</span>
+                    </div>
+                    <p class="text-gray-700 text-sm mb-3">${drill.description}</p>
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <span class="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
+                            <i class="fas fa-tools mr-1"></i>${drill.equipment}
+                        </span>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="searchVideosFromAI('${drill.youtubeSearch}')" 
+                                class="bg-braves-navy text-white px-3 py-1 rounded text-xs hover:bg-braves-red transition-all">
+                            <i class="fas fa-search mr-1"></i>Find Videos
+                        </button>
+                        <button onclick="copyDrillToClipboard('${drill.name}', '${drill.description.replace(/'/g, "\\'")}', '${drill.equipment}')" 
+                                class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-700 transition-all">
+                            <i class="fas fa-copy mr-1"></i>Copy Drill
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+            </div>
+            <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h6 class="font-semibold text-blue-800 mb-2">💡 How to Use These Drills</h6>
+                <ul class="text-blue-700 text-sm space-y-1">
+                    <li>• Replace any existing station with these new drills</li>
+                    <li>• Use "Find Videos" to get instructional content</li>
+                    <li>• Copy drill details to add to your practice notes</li>
+                    <li>• Modify descriptions to match your team's skill level</li>
+                </ul>
+            </div>
+        `;
+        
+        showAIResults(html);
+        
+    } catch (error) {
+        console.error('Error getting drill suggestions:', error);
+        showAIError(error.message || 'Failed to generate drill suggestions. Please try again.');
+    }
+}
+
+async function handleAutoFillDescriptions() {
+    if (!currentAIPractice) {
+        showAIError('No practice selected. Please try again.');
+        return;
+    }
+    
+    const input = document.getElementById('ai-input');
+    const context = input.value.trim();
+    
+    lastAIAction = 'auto-fill';
+    showAILoading();
+    
+    try {
+        // Get drill names from current practice
+        const drillNames = [];
+        if (currentAIPractice.stations) {
+            currentAIPractice.stations.forEach(station => {
+                if (station.name) drillNames.push(station.name);
+            });
+        }
+        
+        if (drillNames.length === 0) {
+            showAIError('No drill names found in this practice to generate descriptions for.');
+            return;
+        }
+        
+        let html = `
+            <div class="space-y-4">
+                <div class="flex items-center justify-between mb-4">
+                    <h5 class="font-semibold text-braves-navy">Generated Descriptions for Practice ${currentAIPractice.id}</h5>
+                    <div class="text-xs text-gray-500">
+                        ${drillNames.length} drill${drillNames.length !== 1 ? 's' : ''} processed
+                    </div>
+                </div>
+        `;
+        
+        for (const drillName of drillNames) {
+            try {
+                const description = await aiAssistant.autoFillDescription(drillName, context);
+                
+                html += `
+                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <div class="flex items-start justify-between mb-3">
+                            <h6 class="font-semibold text-gray-800">${drillName}</h6>
+                            <button onclick="copyDescriptionToClipboard('${description.replace(/'/g, "\\'")}', '${drillName}')" 
+                                    class="text-xs bg-braves-red text-white px-2 py-1 rounded hover:bg-braves-red-hover transition-all">
+                                <i class="fas fa-copy mr-1"></i>Copy
+                            </button>
+                        </div>
+                        <p class="text-gray-700 text-sm">${description}</p>
+                    </div>
+                `;
+            } catch (error) {
+                console.error(`Error generating description for ${drillName}:`, error);
+                html += `
+                    <div class="bg-red-50 rounded-lg p-4 border border-red-200">
+                        <h6 class="font-semibold text-red-800">${drillName}</h6>
+                        <p class="text-red-700 text-sm">Failed to generate description for this drill.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        html += `
+            </div>
+            <div class="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
+                <h6 class="font-semibold text-green-800 mb-2">✅ Next Steps</h6>
+                <ul class="text-green-700 text-sm space-y-1">
+                    <li>• Copy descriptions you like and paste them into the practice editor</li>
+                    <li>• Edit descriptions to match your coaching style</li>
+                    <li>• Add specific coaching cues or safety reminders</li>
+                </ul>
+            </div>
+        `;
+        
+        showAIResults(html);
+        
+    } catch (error) {
+        console.error('Error generating descriptions:', error);
+        showAIError(error.message || 'Failed to generate descriptions. Please try again.');
+    }
+}
+
+async function handleSummarizeForParents() {
+    if (!currentAIPractice) {
+        showAIError('No practice selected. Please try again.');
+        return;
+    }
+    
+    lastAIAction = 'summarize';
+    showAILoading();
+    
+    try {
+        const summary = await aiAssistant.summarizeForParents(currentAIPractice);
+        
+        const html = `
+            <div class="space-y-4">
+                <div class="flex items-center justify-between mb-4">
+                    <h5 class="font-semibold text-braves-navy">Parent Summary for Practice ${currentAIPractice.id}</h5>
+                    <button onclick="copyParentSummary('${summary.replace(/'/g, "\\'")}', '${currentAIPractice.title}')" 
+                            class="bg-braves-red text-white px-3 py-2 rounded text-sm hover:bg-braves-red-hover transition-all">
+                        <i class="fas fa-copy mr-1"></i>Copy Summary
+                    </button>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div class="flex items-center mb-3">
+                        <i class="fas fa-envelope text-braves-red mr-2"></i>
+                        <span class="font-semibold text-gray-800">Ready-to-Send Message</span>
+                    </div>
+                    <div class="bg-white p-4 rounded border border-gray-300 font-mono text-sm text-gray-700 leading-relaxed">
+                        ${summary.replace(/\n/g, '<br>')}
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                        <h6 class="font-semibold text-blue-800 mb-2">📱 How to Use</h6>
+                        <ul class="text-blue-700 text-xs space-y-1">
+                            <li>• Copy the message above</li>
+                            <li>• Paste into team group chat</li>
+                            <li>• Send via email to parents</li>
+                            <li>• Post on team communication app</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+                        <h6 class="font-semibold text-green-800 mb-2">✨ Benefits</h6>
+                        <ul class="text-green-700 text-xs space-y-1">
+                            <li>• Keeps parents engaged</li>
+                            <li>• Shows practice structure</li>
+                            <li>• Highlights skill development</li>
+                            <li>• Professional communication</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        showAIResults(html);
+        
+    } catch (error) {
+        console.error('Error generating parent summary:', error);
+        showAIError(error.message || 'Failed to generate parent summary. Please try again.');
+    }
+}
+
+function retryAIAction() {
+    if (!lastAIAction) return;
+    
+    switch (lastAIAction) {
+        case 'suggest-drills':
+            handleSuggestDrills();
+            break;
+        case 'auto-fill':
+            handleAutoFillDescriptions();
+            break;
+        case 'summarize':
+            handleSummarizeForParents();
+            break;
+    }
+}
+
+function clearAIResults() {
+    hideAllAIStates();
+    lastAIAction = null;
+}
+
+// Helper functions for AI results
+function searchVideosFromAI(searchTerm) {
+    // Close AI modal and open video search
+    closeAIAssistant();
+    
+    // Create a temporary input for video search
+    const tempInput = document.createElement('input');
+    tempInput.id = 'temp-ai-video-search';
+    tempInput.style.display = 'none';
+    document.body.appendChild(tempInput);
+    
+    // Trigger video search
+    searchVideos('temp-ai-video-search', searchTerm);
+    
+    // Clean up temp input after search
+    setTimeout(() => {
+        const temp = document.getElementById('temp-ai-video-search');
+        if (temp) temp.remove();
+    }, 1000);
+}
+
+async function copyDrillToClipboard(name, description, equipment) {
+    const drillText = `**${name}**\n\n${description}\n\nEquipment: ${equipment}`;
+    
+    try {
+        await navigator.clipboard.writeText(drillText);
+        showToast('Drill copied to clipboard!', 'success');
+    } catch (error) {
+        console.error('Failed to copy drill:', error);
+        showToast('Failed to copy drill. Please try again.', 'error');
+    }
+}
+
+async function copyDescriptionToClipboard(description, drillName) {
+    try {
+        await navigator.clipboard.writeText(description);
+        showToast(`Description for "${drillName}" copied to clipboard!`, 'success');
+    } catch (error) {
+        console.error('Failed to copy description:', error);
+        showToast('Failed to copy description. Please try again.', 'error');
+    }
+}
+
+async function copyParentSummary(summary, practiceTitle) {
+    try {
+        await navigator.clipboard.writeText(summary);
+        showToast(`Parent summary for "${practiceTitle}" copied to clipboard!`, 'success');
+    } catch (error) {
+        console.error('Failed to copy summary:', error);
+        showToast('Failed to copy summary. Please try again.', 'error');
+    }
+}
+
+function showToast(message, type = 'info') {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium transition-all duration-300 transform translate-x-full`;
+    
+    // Set color based on type
+    switch (type) {
+        case 'success':
+            toast.classList.add('bg-green-500');
+            break;
+        case 'error':
+            toast.classList.add('bg-red-500');
+            break;
+        default:
+            toast.classList.add('bg-blue-500');
+    }
+    
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.classList.remove('translate-x-full');
+    }, 100);
+    
+    // Animate out and remove
+    setTimeout(() => {
+        toast.classList.add('translate-x-full');
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }, 3000);
+}
+
 // Make functions globally available
 window.openVideo = openVideo;
 window.closeVideo = closeVideo;
@@ -2193,3 +2623,13 @@ window.switchTab = switchTab;
 window.editCoachName = editCoachName;
 window.saveCoachName = saveCoachName;
 window.cancelNameEdit = cancelNameEdit;
+window.openAIAssistant = openAIAssistant;
+window.closeAIAssistant = closeAIAssistant;
+window.handleSuggestDrills = handleSuggestDrills;
+window.handleAutoFillDescriptions = handleAutoFillDescriptions;
+window.handleSummarizeForParents = handleSummarizeForParents;
+window.retryAIAction = retryAIAction;
+window.clearAIResults = clearAIResults;
+window.copyDrillToClipboard = copyDrillToClipboard;
+window.copyDescriptionToClipboard = copyDescriptionToClipboard;
+window.copyParentSummary = copyParentSummary;

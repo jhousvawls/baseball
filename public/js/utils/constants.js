@@ -3,6 +3,10 @@ export const SUPER_ADMIN_EMAIL = 'john@ahsodesigns.com';
 export const YOUTUBE_API_KEY = 'AIzaSyDbFiqPG91hq5_ie2vgVQ6ex98Cp4At52U';
 export const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3/search';
 
+// OpenAI Configuration
+export const OPENAI_API_KEY = 'your-openai-api-key-here'; // Replace with your actual API key
+export const OPENAI_API_BASE_URL = 'https://api.openai.com/v1/chat/completions';
+
 export const APP_CONFIG = {
     TEST_ADMIN_SESSION_DURATION: 24 * 60 * 60 * 1000, // 24 hours
 };
