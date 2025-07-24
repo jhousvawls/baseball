@@ -1,0 +1,387 @@
+/* Component-specific styles */
+
+/* Video Modal Styles */
+.video-modal .video-container {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+}
+
+.video-modal .video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+}
+
+/* Video Search Dropdown Styles */
+.video-search-dropdown {
+    z-index: 1000;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.video-search-dropdown .video-result {
+    padding: 12px;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.2s ease;
+}
+
+.video-search-dropdown .video-result:hover {
+    background-color: #f9fafb;
+}
+
+.video-search-dropdown .video-result:last-child {
+    border-bottom: none;
+}
+
+.video-result-thumbnail {
+    width: 80px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.video-result-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.video-result-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+    line-height: 1.3;
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.video-result-channel {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+
+.video-result-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.video-result-btn {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.video-result-btn.use-btn {
+    background-color: #ce1141;
+    color: white;
+}
+
+.video-result-btn.use-btn:hover {
+    background-color: #b10e37;
+}
+
+.video-result-btn.preview-btn {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+.video-result-btn.preview-btn:hover {
+    background-color: #e5e7eb;
+}
+
+/* Practice Editor Styles */
+.practice-editor-section {
+    margin-bottom: 24px;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background-color: #fafafa;
+}
+
+.practice-editor-section h3 {
+    color: #13274f;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.practice-editor-field {
+    margin-bottom: 16px;
+}
+
+.practice-editor-field label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+.practice-editor-field input,
+.practice-editor-field textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.practice-editor-field input:focus,
+.practice-editor-field textarea:focus {
+    outline: none;
+    border-color: #ce1141;
+    box-shadow: 0 0 0 3px rgba(206, 17, 65, 0.1);
+}
+
+.practice-editor-field textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.video-input-group {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.video-input-group input {
+    flex: 1;
+}
+
+.find-video-btn {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    white-space: nowrap;
+}
+
+.find-video-btn:hover {
+    background-color: #2563eb;
+}
+
+.find-video-btn:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+}
+
+/* Station Editor Styles */
+.station-editor {
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 16px;
+    background-color: white;
+}
+
+.station-editor h4 {
+    color: #13274f;
+    font-weight: 600;
+    margin-bottom: 12px;
+    font-size: 16px;
+}
+
+/* Duration Input Styles */
+.duration-input {
+    width: 80px;
+    text-align: center;
+}
+
+.total-time-display {
+    background-color: #f0f9ff;
+    border: 1px solid #0ea5e9;
+    color: #0c4a6e;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* Admin Dashboard Styles */
+.admin-tab {
+    transition: all 0.2s ease;
+}
+
+.admin-tab.active {
+    color: #13274f;
+    border-bottom-color: #ce1141;
+}
+
+.admin-tab:not(.active):hover {
+    color: #13274f;
+}
+
+/* Coach Management Styles */
+.coach-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    justify-content: between;
+    align-items: center;
+}
+
+.coach-info h4 {
+    font-weight: 600;
+    color: #13274f;
+    margin-bottom: 4px;
+}
+
+.coach-info p {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.coach-status {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.coach-status.active {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.coach-status.inactive {
+    background-color: #fef2f2;
+    color: #dc2626;
+}
+
+/* Activity Feed Styles */
+.activity-item {
+    padding: 16px;
+    border-bottom: 1px solid #f3f4f6;
+    display: flex;
+    align-items: start;
+    gap: 12px;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.activity-icon.edit {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}
+
+.activity-icon.add {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.activity-content h4 {
+    font-weight: 600;
+    color: #13274f;
+    margin-bottom: 4px;
+}
+
+.activity-content p {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+
+.activity-time {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+    .video-search-dropdown {
+        width: 100% !important;
+        max-width: 350px;
+    }
+    
+    .video-result {
+        padding: 8px;
+    }
+    
+    .video-result-thumbnail {
+        width: 60px;
+        height: 45px;
+    }
+    
+    .practice-editor-section {
+        padding: 16px;
+    }
+    
+    .video-input-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .find-video-btn {
+        margin-top: 8px;
+    }
+}
+
+/* Loading States */
+.loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f4f6;
+    border-radius: 50%;
+    border-top-color: #ce1141;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Focus States for Accessibility */
+.find-video-btn:focus,
+.video-result-btn:focus {
+    outline: 2px solid #ce1141;
+    outline-offset: 2px;
+}
+
+/* Error States */
+.input-error {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+.error-message {
+    color: #ef4444;
+    font-size: 12px;
+    margin-top: 4px;
+}

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Search Debug Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .video-search-container { border: 2px solid #e5e7eb; border-radius: 8px; }
+        .search-loading, .search-results, .search-error, .search-no-results { padding: 1rem; }
+        .video-result-card { border-bottom: 1px solid #e5e7eb; padding: 0.75rem; }
+        .video-result-card:hover { background-color: #f9fafb; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-8">Video Search Debug Test</h1>
+        
+        <!-- Test Video Search -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">Test Inline Video Search</h2>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Video URL</label>
+                <div class="flex space-x-2">
+                    <input type="url" id="test-video-input" 
+                           class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="https://www.youtube.com/watch?v=...">
+                    <button type="button" class="find-videos-btn bg-blue-500 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-blue-600 transition-all flex-shrink-0"
+                            onclick="openInlineVideoSearch('hitting drill', 'test-video-input', 'test-search-container')">
+                        <i class="fas fa-search mr-1"></i>Find Videos
+                    </button>
+                </div>
+                
+                <!-- Inline Video Search Container -->
+                <div id="test-search-container" class="video-search-container mt-3 hidden">
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <!-- Header -->
+                        <div class="flex items-center justify-between mb-3">
+                            <h5 class="text-sm font-bold text-blue-600">Videos for: "hitting drill"</h5>
+                            <button type="button" class="close-inline-search text-gray-400 hover:text-gray-600 text-sm"
+                                    onclick="closeInlineVideoSearch('test-search-container')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Loading State -->
+                        <div class="search-loading text-center py-4">
+                            <i class="fas fa-spinner fa-spin text-blue-600 mb-2"></i>
+                            <p class="text-sm text-gray-600">Searching for videos...</p>
+                        </div>
+                        
+                        <!-- Results Container -->
+                        <div class="search-results hidden">
+                            <!-- Video cards will be inserted here -->
+                        </div>
+                        
+                        <!-- Error State -->
+                        <div class="search-error text-center py-4 hidden">
+                            <i class="fas fa-exclamation-triangle text-red-500 mb-2"></i>
+                            <p class="text-red-600 text-sm mb-3">Unable to find videos (API Error)</p>
+                            <p class="text-xs text-gray-500 mb-3">Using fallback videos instead</p>
+                            <button type="button" class="retry-search bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600 transition-all"
+                                    onclick="openInlineVideoSearch('hitting drill', 'test-video-input', 'test-search-container')">
+                                Retry
+                            </button>
+                        </div>
+                        
+                        <!-- No Results State -->
+                        <div class="search-no-results text-center py-4 hidden">
+                            <i class="fas fa-search text-gray-400 mb-2"></i>
+                            <p class="text-gray-600 text-sm mb-3">No videos found</p>
+                            <button type="button" class="manual-entry bg-gray-500 text-white px-3 py-1 rounded text-xs hover:bg-gray-600 transition-all"
+                                    onclick="closeInlineVideoSearch('test-search-container')">
+                                Enter Manually
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Debug Information -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold mb-4">Debug Information</h2>
+            <div id="debug-info" class="text-sm text-gray-600 space-y-2">
+                <p><strong>Current URL:</strong> <span id="current-url"></span></p>
+                <p><strong>Referrer:</strong> <span id="referrer-info"></span></p>
+                <p><strong>API Status:</strong> <span id="api-status">Not tested</span></p>
+            </div>
+            
+            <button onclick="testYouTubeAPI()" class="mt-4 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all">
+                <i class="fas fa-play mr-2"></i>Test YouTube API
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const YOUTUBE_API_KEY = 'AIzaSyDbFiqPG91hq5_ie2vgVQ6ex98Cp4At52U';
+        const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3/search';
+        
+        // Global variables
+        let currentVideoSearchTarget = null;
+        let videoSearchCache = new Map();
+
+        // Initialize debug info
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('current-url').textContent = window.location.href;
+            document.getElementById('referrer-info').textContent = document.referrer || 'null';
+        });
+
+        // --- YOUTUBE API FUNCTIONS ---
+        async function searchYouTubeVideos(drillName, maxResults = 5) {
+            const cacheKey = drillName.toLowerCase();
+            const cachedResult = videoSearchCache.get(cacheKey);
+            if (cachedResult && cachedResult.source === 'api') {
+                console.log('✅ Using cached API results for:', drillName);
+                return cachedResult.videos;
+            }
+
+            const searchQuery = `${drillName} youth baseball drill kids training`;
+            const params = new URLSearchParams({
+                part: 'snippet',
+                q: searchQuery,
+                type: 'video',
+                videoDuration: 'short',
+                videoSyndicated: 'true',
+                safeSearch: 'strict',
+                maxResults: maxResults * 2,
+                order: 'relevance',
+                key: YOUTUBE_API_KEY
+            });
+
+            const fullUrl = `${YOUTUBE_API_BASE_URL}?${params}`;
+            console.log('🔍 YOUTUBE API - Searching for:', searchQuery);
+            console.log('🔍 YOUTUBE API - URL:', fullUrl);
+
+            try {
+                const response = await fetch(fullUrl);
+                console.log('🔍 YOUTUBE API - Response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('🚨 YOUTUBE API ERROR:', response.status, errorText);
+                    
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        console.error('🚨 YOUTUBE API ERROR Details:', errorData);
+                        
+                        // Update debug info
+                        document.getElementById('api-status').innerHTML = 
+                            `<span class="text-red-600">❌ Failed (${response.status}): ${errorData.error?.message || 'Unknown error'}</span>`;
+                    } catch (e) {
+                        document.getElementById('api-status').innerHTML = 
+                            `<span class="text-red-600">❌ Failed (${response.status}): Parse error</span>`;
+                    }
+                    
+                    return getFallbackVideos(drillName);
+                }
+                
+                const data = await response.json();
+                console.log('✅ YOUTUBE API SUCCESS - Found', data.items?.length || 0, 'videos');
+                
+                if (!data.items || data.items.length === 0) {
+                    console.warn('⚠️ YOUTUBE API - No items returned');
+                    document.getElementById('api-status').innerHTML = 
+                        `<span class="text-yellow-600">⚠️ No results found</span>`;
+                    return getFallbackVideos(drillName);
+                }
+                
+                document.getElementById('api-status').innerHTML = 
+                    `<span class="text-green-600">✅ Success (${data.items.length} videos)</span>`;
+                
+                const filteredVideos = filterVideoResults(data.items);
+                const limitedResults = filteredVideos.slice(0, maxResults);
+                
+                videoSearchCache.set(cacheKey, {
+                    source: 'api',
+                    videos: limitedResults
+                });
+                
+                return limitedResults;
+            } catch (error) {
+                console.error('🚨 YOUTUBE API FETCH ERROR:', error);
+                document.getElementById('api-status').innerHTML = 
+                    `<span class="text-red-600">❌ Network Error: ${error.message}</span>`;
+                return getFallbackVideos(drillName);
+            }
+        }
+
+        function getFallbackVideos(drillName) {
+            console.log('📦 Using fallback videos for:', drillName);
+            
+            const fallbackVideos = {
+                'hitting': [
+                    {
+                        id: { videoId: 'A-KTuOkMpjE' },
+                        snippet: {
+                            title: 'Youth Baseball Hitting Fundamentals',
+                            channelTitle: 'Baseball Training',
+                            publishedAt: '2023-01-01',
+                            thumbnails: {
+                                medium: { url: 'https://img.youtube.com/vi/A-KTuOkMpjE/mqdefault.jpg' }
+                            }
+                        }
+                    },
+                    {
+                        id: { videoId: 'ZLxiU6oSNCE' },
+                        snippet: {
+                            title: 'Soft Toss Hitting Drills for Kids',
+                            channelTitle: 'Youth Baseball Coach',
+                            publishedAt: '2023-01-01',
+                            thumbnails: {
+                                medium: { url: 'https://img.youtube.com/vi/ZLxiU6oSNCE/mqdefault.jpg' }
+                            }
+                        }
+                    }
+                ],
+                'fielding': [
+                    {
+                        id: { videoId: 'FJP3JXZM2pE' },
+                        snippet: {
+                            title: 'Fielding Fundamentals for Youth Baseball',
+                            channelTitle: 'Baseball Academy',
+                            publishedAt: '2023-01-01',
+                            thumbnails: {
+                                medium: { url: 'https://img.youtube.com/vi/FJP3JXZM2pE/mqdefault.jpg' }
+                            }
+                        }
+                    }
+                ]
+            };
+
+            const drillLower = drillName.toLowerCase();
+            let category = 'hitting';
+            
+            if (drillLower.includes('field') || drillLower.includes('catch') || drillLower.includes('glove')) {
+                category = 'fielding';
+            } else if (drillLower.includes('throw') || drillLower.includes('arm')) {
+                category = 'throwing';
+            } else if (drillLower.includes('run') || drillLower.includes('base') || drillLower.includes('steal')) {
+                category = 'baserunning';
+            }
+
+            return fallbackVideos[category] || fallbackVideos.hitting;
+        }
+
+        function filterVideoResults(videos) {
+            return videos.filter(video => {
+                const title = video.snippet.title.toLowerCase();
+                const description = video.snippet.description?.toLowerCase() || '';
+                const channelTitle = video.snippet.channelTitle.toLowerCase();
+                
+                const baseballTerms = ['baseball', 'drill', 'youth', 'kids', 'training', 'practice', 'coaching', 'little league'];
+                const hasBaseballContent = baseballTerms.some(term => 
+                    title.includes(term) || description.includes(term) || channelTitle.includes(term)
+                );
+                
+                const excludeTerms = ['injury', 'accident', 'fail', 'blooper', 'fight', 'argument', 'ejected'];
+                const hasInappropriateContent = excludeTerms.some(term => 
+                    title.includes(term) || description.includes(term)
+                );
+                
+                return hasBaseballContent && !hasInappropriateContent;
+            });
+        }
+
+        // --- INLINE VIDEO SEARCH FUNCTIONS ---
+        async function openInlineVideoSearch(drillName, targetInputId, containerId) {
+            console.log('🎯 INLINE SEARCH - Starting search for:', drillName);
+            console.log('🎯 INLINE SEARCH - Target input:', targetInputId);
+            console.log('🎯 INLINE SEARCH - Container:', containerId);
+            
+            currentVideoSearchTarget = targetInputId;
+            
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.error('❌ CONTAINER NOT FOUND:', containerId);
+                return;
+            }
+            
+            console.log('✅ CONTAINER FOUND - Showing container');
+            container.classList.remove('hidden');
+            
+            showInlineVideoSearchState(container, 'loading');
+            
+            try {
+                const videos = await searchYouTubeVideos(drillName);
+                console.log('📡 SEARCH COMPLETE - Found', videos.length, 'videos');
+                
+                if (videos.length === 0) {
+                    showInlineVideoSearchState(container, 'no-results');
+                } else {
+                    displayInlineVideoSearchResults(container, videos);
+                    showInlineVideoSearchState(container, 'results');
+                }
+            } catch (error) {
+                console.error('❌ SEARCH ERROR:', error);
+                showInlineVideoSearchState(container, 'error');
+            }
+        }
+
+        function showInlineVideoSearchState(container, state) {
+            console.log('🔄 STATE CHANGE - Setting state to:', state);
+            
+            const loadingEl = container.querySelector('.search-loading');
+            const resultsEl = container.querySelector('.search-results');
+            const errorEl = container.querySelector('.search-error');
+            const noResultsEl = container.querySelector('.search-no-results');
+            
+            // Hide all states
+            loadingEl?.classList.add('hidden');
+            resultsEl?.classList.add('hidden');
+            errorEl?.classList.add('hidden');
+            noResultsEl?.classList.add('hidden');
+            
+            // Show requested state
+            switch (state) {
+                case 'loading':
+                    loadingEl?.classList.remove('hidden');
+                    break;
+                case 'results':
+                    resultsEl?.classList.remove('hidden');
+                    break;
+                case 'error':
+                    errorEl?.classList.remove('hidden');
+                    break;
+                case 'no-results':
+                    noResultsEl?.classList.remove('hidden');
+                    break;
+            }
+        }
+
+        function displayInlineVideoSearchResults(container, videos) {
+            const resultsEl = container.querySelector('.search-results');
+            if (!resultsEl) return;
+            
+            resultsEl.innerHTML = '';
+            
+            videos.forEach(video => {
+                const videoCard = createInlineVideoResultCard(video);
+                resultsEl.appendChild(videoCard);
+            });
+        }
+
+        function createInlineVideoResultCard(video) {
+            const card = document.createElement('div');
+            card.className = 'video-result-card cursor-pointer';
+            
+            const thumbnail = video.snippet.thumbnails.medium || video.snippet.thumbnails.default;
+            const videoUrl = `https://www.youtube.com/watch?v=${video.id.videoId}`;
+            const title = video.snippet.title;
+            const channelTitle = video.snippet.channelTitle;
+            
+            card.innerHTML = `
+                <div class="flex space-x-3">
+                    <div class="flex-shrink-0">
+                        <img src="${thumbnail.url}" alt="Video thumbnail" 
+                             class="w-16 h-12 object-cover rounded">
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-medium text-xs text-gray-900 mb-1">${title}</h4>
+                        <p class="text-xs text-gray-500 mb-2">${channelTitle}</p>
+                        <div class="flex space-x-1">
+                            <button class="use-video-btn bg-red-500 text-white px-2 py-1 rounded text-xs font-medium hover:bg-red-600 transition-all"
+                                    data-video-url="${videoUrl}">
+                                <i class="fas fa-check mr-1"></i>Use
+                            </button>
+                            <button class="preview-video-btn bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs hover:bg-gray-300 transition-all"
+                                    data-video-url="${videoUrl}" data-video-title="${title}">
+                                <i class="fas fa-eye mr-1"></i>Preview
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add event listeners
+            const useBtn = card.querySelector('.use-video-btn');
+            const previewBtn = card.querySelector('.preview-video-btn');
+            
+            useBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectInlineVideo(videoUrl);
+            });
+            
+            previewBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                alert(`Preview: ${title}\nURL: ${videoUrl}`);
+            });
+            
+            return card;
+        }
+
+        function selectInlineVideo(videoUrl) {
+            if (currentVideoSearchTarget) {
+                const targetInput = document.getElementById(currentVideoSearchTarget);
+                if (targetInput) {
+                    targetInput.value = videoUrl;
+                    targetInput.dispatchEvent(new Event('input'));
+                }
+            }
+            
+            document.querySelectorAll('.video-search-container').forEach(container => {
+                container.classList.add('hidden');
+            });
+            
+            currentVideoSearchTarget = null;
+            alert(`Video selected: ${videoUrl}`);
+        }
+
+        function closeInlineVideoSearch(containerId) {
+            const container = document.getElementById(containerId);
+            if (container) {
+                container.classList.add('hidden');
+            }
+            currentVideoSearchTarget = null;
+        }
+
+        // --- TEST FUNCTIONS ---
+        async function testYouTubeAPI() {
+            console.log('🧪 TESTING YOUTUBE API...');
+            document.getElementById('api-status').innerHTML = '<span class="text-blue-600">🔄 Testing...</span>';
+            
+            const testUrl = `${YOUTUBE_API_BASE_URL}?part=snippet&q=baseball&type=video&maxResults=1&key=${YOUTUBE_API_KEY}`;
+            
+            try {
+                const response = await fetch(testUrl);
+                const data = await response.json();
+                
+                if (response.ok && data.items) {
+                    console.log('✅ API TEST SUCCESS');
+                    document.getElementById('api-status').innerHTML = 
+                        '<span class="text-green-600">✅ API Working</span>';
+                    return true;
+                } else {
+                    console.log('❌ API TEST FAILED:', data);
+                    document.getElementById('api-status').innerHTML = 
+                        `<span class="text-red-600">❌ Failed: ${data.error?.message || 'Unknown error'}</span>`;
+                    return false;
+                }
+            } catch (error) {
+                console.error('🚨 API TEST ERROR:', error);
+                document.getElementById('api-status').innerHTML = 
+                    `<span class="text-red-600">❌ Error: ${error.message}</span>`;
+                return false;
+            }
+        }
+
+        // Make functions global
+        window.openInlineVideoSearch = openInlineVideoSearch;
+        window.closeInlineVideoSearch = closeInlineVideoSearch;
+        window.testYouTubeAPI = testYouTubeAPI;
+    </script>
+</body>
+</html>

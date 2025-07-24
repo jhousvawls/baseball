@@ -1,0 +1,69 @@
+/* Main Application Styles */
+body { 
+    font-family: 'Inter', sans-serif; 
+}
+
+/* Braves Theme Colors */
+.bg-braves-navy { 
+    background-color: #13274F; 
+}
+
+.text-braves-navy { 
+    color: #13274F; 
+}
+
+.bg-braves-red { 
+    background-color: #CE1141; 
+}
+
+.text-braves-red { 
+    color: #CE1141; 
+}
+
+.border-braves-red { 
+    border-color: #CE1141; 
+}
+
+/* Practice Button Styles */
+.practice-btn { 
+    transition: all 0.2s ease-in-out; 
+    border: 2px solid transparent; 
+}
+
+.practice-btn:hover { 
+    transform: translateY(-2px); 
+    border-color: #CE1141; 
+}
+
+.practice-btn.active { 
+    background-color: #CE1141; 
+    color: white; 
+    font-weight: 700; 
+    border-color: #CE1141; 
+}
+
+/* Video Link Styles */
+.video-link { 
+    transition: all 0.2s ease-in-out; 
+}
+
+.video-link:hover { 
+    transform: scale(1.05); 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+}
+
+/* Animation Styles */
+.animate-fade-in { 
+    animation: fadeIn 0.5s ease-in-out; 
+}
+
+@keyframes fadeIn { 
+    from { 
+        opacity: 0; 
+        transform: translateY(10px); 
+    } 
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    } 
+}

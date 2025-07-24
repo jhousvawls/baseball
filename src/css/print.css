@@ -1,0 +1,106 @@
+/* Print Styles */
+@media print {
+    body { 
+        background: white !important; 
+    }
+    
+    .container { 
+        max-width: none !important; 
+        margin: 0 !important; 
+        padding: 0 !important; 
+    }
+    
+    /* Hide interactive elements when printing */
+    header, 
+    nav, 
+    footer, 
+    #admin-toggle, 
+    #admin-modal, 
+    #admin-dashboard, 
+    #practice-editor-modal,
+    #confirmation-modal,
+    #video-modal,
+    .print-button { 
+        display: none !important; 
+    }
+    
+    /* Practice display optimizations */
+    #practice-plan-display { 
+        box-shadow: none !important; 
+        border: none !important; 
+        background: white !important; 
+        padding: 20px !important; 
+        margin: 0 !important;
+        border-radius: 0 !important;
+    }
+    
+    /* Video link print formatting */
+    .video-link { 
+        background: none !important; 
+        color: #000 !important; 
+        text-decoration: underline !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        display: inline !important;
+    }
+    
+    .video-link:before { 
+        content: "Video: "; 
+    }
+    
+    /* Color adjustments for print */
+    .text-braves-navy { 
+        color: #000 !important; 
+    }
+    
+    .text-braves-red { 
+        color: #000 !important; 
+    }
+    
+    .border-braves-red { 
+        border-color: #000 !important; 
+    }
+    
+    h2, h3, h4 { 
+        color: #000 !important; 
+    }
+    
+    .bg-braves-navy, 
+    .bg-braves-red { 
+        background: none !important; 
+        color: #000 !important; 
+    }
+    
+    /* Ensure colors print correctly */
+    * { 
+        -webkit-print-color-adjust: exact !important; 
+        color-adjust: exact !important; 
+    }
+    
+    /* Page break optimizations */
+    .practice-section {
+        page-break-inside: avoid;
+    }
+    
+    h1, h2, h3 {
+        page-break-after: avoid;
+    }
+    
+    /* Font size adjustments for print */
+    body {
+        font-size: 12pt;
+        line-height: 1.4;
+    }
+    
+    h1 {
+        font-size: 18pt;
+    }
+    
+    h2 {
+        font-size: 16pt;
+    }
+    
+    h3 {
+        font-size: 14pt;
+    }
+}
