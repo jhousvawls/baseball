@@ -480,3 +480,228 @@
     font-size: 12px;
     margin-top: 4px;
 }
+
+/* Enhanced Coach Profile Styles */
+.enhanced-coach-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.enhanced-coach-card:hover {
+    border-color: var(--braves-red);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.coach-profile-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+}
+
+.coach-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e5e7eb;
+}
+
+.coach-avatar-fallback {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: var(--braves-red);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 18px;
+    border: 2px solid #e5e7eb;
+}
+
+.coach-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.coach-name-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.coach-display-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--braves-navy);
+    margin: 0;
+}
+
+.edit-name-btn {
+    background: none;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    opacity: 0;
+}
+
+.coach-name-section:hover .edit-name-btn {
+    opacity: 1;
+}
+
+.edit-name-btn:hover {
+    color: var(--braves-red);
+    background-color: #f3f4f6;
+}
+
+.coach-email {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0 0 8px 0;
+    font-weight: 500;
+}
+
+.coach-metadata {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.coach-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.action-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.activate-btn {
+    background-color: #10b981;
+    color: white;
+}
+
+.activate-btn:hover {
+    background-color: #059669;
+}
+
+.deactivate-btn {
+    background-color: #f59e0b;
+    color: white;
+}
+
+.deactivate-btn:hover {
+    background-color: #d97706;
+}
+
+.remove-btn {
+    background-color: var(--braves-red);
+    color: white;
+}
+
+.remove-btn:hover {
+    background-color: var(--braves-red-hover);
+}
+
+/* Name Editing Styles */
+.coach-name-input {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--braves-navy);
+    border: 2px solid var(--braves-red);
+    border-radius: 4px;
+    padding: 4px 8px;
+    background: white;
+    outline: none;
+    min-width: 150px;
+}
+
+.name-edit-buttons {
+    display: flex;
+    gap: 4px;
+    margin-left: 8px;
+}
+
+.save-name-btn,
+.cancel-name-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.save-name-btn {
+    background-color: #10b981;
+    color: white;
+}
+
+.save-name-btn:hover {
+    background-color: #059669;
+}
+
+.cancel-name-btn {
+    background-color: #6b7280;
+    color: white;
+}
+
+.cancel-name-btn:hover {
+    background-color: #4b5563;
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+    .enhanced-coach-card {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+        padding: 16px;
+    }
+    
+    .coach-profile-section {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 12px;
+    }
+    
+    .coach-name-section {
+        justify-content: center;
+    }
+    
+    .coach-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .action-btn {
+        flex: 1;
+        min-width: 80px;
+    }
+}

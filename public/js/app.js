@@ -138,9 +138,20 @@ async function updateCoachLastLogin(email) {
         for (const doc of snapshot.docs) {
             const coach = doc.data();
             if (coach.email === email) {
-                await updateDoc(doc.ref, {
+                // Update login time and sync Google profile data
+                const updateData = {
                     lastLogin: new Date()
-                });
+                };
+                
+                // Sync Google profile data if available
+                if (currentUser?.photoURL) {
+                    updateData.photoURL = currentUser.photoURL;
+                }
+                if (currentUser?.displayName) {
+                    updateData.googleDisplayName = currentUser.displayName;
+                }
+                
+                await updateDoc(doc.ref, updateData);
                 break;
             }
         }
@@ -198,8 +209,8 @@ async function seedDatabase() {
                 desc: "Gather players in a circle. Introduce coaches and players. Explain what baseball is and what we'll do today. Practice saying 'Good job!' and giving high-fives.",
                 duration: 5
             },
-            stationTime: 40,
-            stationInstructions: "Split into 4 groups. Spend 10 minutes at each station. Focus on fun and participation over perfection.",
+            stationTime: 35,
+            stationInstructions: "Split into 4 groups. Spend 8-9 minutes at each station. Focus on fun and participation over perfection.",
             stations: [
                 {
                     name: "Alligator Chomps",
@@ -225,7 +236,7 @@ async function seedDatabase() {
             finisher: {
                 title: "Home Run Derby",
                 desc: "Every player gets to hit until they get a 'home run' (any ball that goes past the pitcher). Celebrate each home run with team cheers and high-fives all around.",
-                duration: 10
+                duration: 15
             },
             wrapup: {
                 title: "Circle Time",
@@ -247,8 +258,8 @@ async function seedDatabase() {
                 desc: "Play Simon Says with baseball actions: 'Simon says swing your bat', 'Simon says catch a fly ball', 'Simon says run to first base'. Gets players moving and thinking baseball.",
                 duration: 5
             },
-            stationTime: 40,
-            stationInstructions: "4 stations, 10 minutes each. Add more challenge while keeping it fun. Encourage players to help each other.",
+            stationTime: 35,
+            stationInstructions: "4 stations, 8-9 minutes each. Add more challenge while keeping it fun. Encourage players to help each other.",
             stations: [
                 {
                     name: "Bucket Catches",
@@ -274,7 +285,7 @@ async function seedDatabase() {
             finisher: {
                 title: "Beat the Coach",
                 desc: "Players try to run around all bases before coach can field a hit ball and touch home plate. Coach should 'struggle' to field balls and run slowly. Every player wins!",
-                duration: 10
+                duration: 15
             },
             wrapup: {
                 title: "Skills Check",
@@ -296,8 +307,8 @@ async function seedDatabase() {
                 desc: "Pair up players for simple stretches. Arm circles, toe touches, gentle twists. Partners help count to 10. Builds teamwork and gets bodies ready for activity.",
                 duration: 5
             },
-            stationTime: 40,
-            stationInstructions: "4 stations, 10 minutes each. Focus on connecting skills together. Players should start seeing how catching, throwing, and hitting work together.",
+            stationTime: 35,
+            stationInstructions: "4 stations, 8-9 minutes each. Focus on connecting skills together. Players should start seeing how catching, throwing, and hitting work together.",
             stations: [
                 {
                     name: "Catch and Throw",
@@ -323,7 +334,7 @@ async function seedDatabase() {
             finisher: {
                 title: "Scrimmage Simulation",
                 desc: "Simple game: hit off tee, run to first, next batter hits and first runner advances. No outs, everyone gets to hit and run. Focus on having fun and moving around bases.",
-                duration: 10
+                duration: 15
             },
             wrapup: {
                 title: "Team Cheer",
@@ -345,8 +356,8 @@ async function seedDatabase() {
                 desc: "Simple poses with baseball names: 'Batter's Box' (squat), 'Home Run Swing' (gentle twist), 'Fly Ball Catch' (reach up high). Makes stretching fun and baseball-themed.",
                 duration: 5
             },
-            stationTime: 40,
-            stationInstructions: "4 stations, 10 minutes each. Introduce basic game concepts. Players should start understanding what happens in a real game.",
+            stationTime: 35,
+            stationInstructions: "4 stations, 8-9 minutes each. Introduce basic game concepts. Players should start understanding what happens in a real game.",
             stations: [
                 {
                     name: "Fielding Positions",
@@ -372,7 +383,7 @@ async function seedDatabase() {
             finisher: {
                 title: "Mini Inning",
                 desc: "Play one 'inning' where everyone bats once. Mix tee and coach pitch. Focus on running bases and cheering for teammates. No keeping score, just playing baseball!",
-                duration: 10
+                duration: 15
             },
             wrapup: {
                 title: "Position Practice",
@@ -394,8 +405,8 @@ async function seedDatabase() {
                 desc: "High knees to first base, butt kicks to second, side shuffles to third, backwards jog home. Gets players moving in different ways while touring the bases.",
                 duration: 5
             },
-            stationTime: 40,
-            stationInstructions: "4 stations, 10 minutes each. Refine skills learned in previous practices. Add more challenge and introduce new concepts.",
+            stationTime: 35,
+            stationInstructions: "4 stations, 8-9 minutes each. Refine skills learned in previous practices. Add more challenge and introduce new concepts.",
             stations: [
                 {
                     name: "Ground Ball Fundamentals",
@@ -421,7 +432,7 @@ async function seedDatabase() {
             finisher: {
                 title: "Skills Showcase",
                 desc: "Each player demonstrates one skill they've improved. Other players cheer and give compliments. Builds confidence and celebrates individual progress.",
-                duration: 10
+                duration: 15
             },
             wrapup: {
                 title: "Goal Setting",
@@ -443,8 +454,8 @@ async function seedDatabase() {
                 desc: "Players stand in circle and share one thing they like about the teammate to their right. Builds team chemistry and positive communication.",
                 duration: 5
             },
-            stationTime: 40,
-            stationInstructions: "4 stations, 10 minutes each. Focus on working together and understanding team concepts. Introduce more game-like situations.",
+            stationTime: 35,
+            stationInstructions: "4 stations, 8-9 minutes each. Focus on working together and understanding team concepts. Introduce more game-like situations.",
             stations: [
                 {
                     name: "Relay Races",
@@ -470,7 +481,7 @@ async function seedDatabase() {
             finisher: {
                 title: "Team Challenge",
                 desc: "Whole team works together to complete challenges: everyone must catch one fly ball, team must make 10 good throws in a row, etc. Celebrate team success!",
-                duration: 10
+                duration: 15
             },
             wrapup: {
                 title: "Team Huddle",
@@ -492,8 +503,8 @@ async function seedDatabase() {
                 desc: "Stretch while discussing game situations: 'Stretch like you're reaching for a high fly ball', 'Bend like you're fielding a ground ball'. Combines physical and mental preparation.",
                 duration: 5
             },
-            stationTime: 40,
-            stationInstructions: "4 stations, 10 minutes each. Practice real game situations. Players should start thinking like baseball players and making decisions.",
+            stationTime: 35,
+            stationInstructions: "4 stations, 8-9 minutes each. Practice real game situations. Players should start thinking like baseball players and making decisions.",
             stations: [
                 {
                     name: "Rundown Drills",
@@ -519,7 +530,7 @@ async function seedDatabase() {
             finisher: {
                 title: "Scrimmage Game",
                 desc: "Play 2-3 innings of real baseball with modified rules: everyone bats each inning, coach helps with pitching, focus on fun over competition. Keep it loose and encouraging.",
-                duration: 10
+                duration: 15
             },
             wrapup: {
                 title: "Game Reflection",
@@ -541,8 +552,8 @@ async function seedDatabase() {
                 desc: "Full team warm-up like the big leagues: jogging, arm circles, practice swings, fielding positions. Players should feel like real baseball players preparing for a big game.",
                 duration: 5
             },
-            stationTime: 40,
-            stationInstructions: "4 stations, 10 minutes each. Put it all together. Players should demonstrate all skills learned and show confidence in game situations.",
+            stationTime: 35,
+            stationInstructions: "4 stations, 8-9 minutes each. Put it all together. Players should demonstrate all skills learned and show confidence in game situations.",
             stations: [
                 {
                     name: "Advanced Fielding",
@@ -568,7 +579,7 @@ async function seedDatabase() {
             finisher: {
                 title: "Championship Game",
                 desc: "Play full scrimmage game with all rules. Keep score if players want, but emphasize effort and improvement over winning. Celebrate great plays by both teams.",
-                duration: 10
+                duration: 15
             },
             wrapup: {
                 title: "Season Celebration",
@@ -1108,24 +1119,42 @@ function renderCoaches() {
     
     authorizedCoaches.forEach(coach => {
         const card = document.createElement('div');
-        card.className = 'coach-card';
+        card.className = 'enhanced-coach-card';
+        
+        // Generate avatar HTML
+        const avatarHtml = coach.photoURL ? 
+            `<img src="${coach.photoURL}" alt="${coach.displayName || coach.email}" class="coach-avatar">` :
+            `<div class="coach-avatar-fallback">${getInitials(coach.displayName || coach.email)}</div>`;
+        
+        // Determine display name
+        const displayName = coach.displayName || coach.email.split('@')[0];
+        
         card.innerHTML = `
-            <div class="coach-info">
-                <h4>${coach.displayName || coach.email}</h4>
-                <p>${coach.email}</p>
-                <p class="text-xs">Added: ${formatDate(coach.addedAt?.toDate?.() || new Date())}</p>
-                ${coach.lastLogin ? `<p class="text-xs">Last login: ${formatDate(coach.lastLogin.toDate())}</p>` : ''}
+            <div class="coach-profile-section">
+                ${avatarHtml}
+                <div class="coach-details">
+                    <div class="coach-name-section">
+                        <h4 class="coach-display-name" id="display-name-${coach.id}">${displayName}</h4>
+                        <button onclick="editCoachName('${coach.id}')" class="edit-name-btn" title="Edit name">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                    </div>
+                    <p class="coach-email">Email: ${coach.email}</p>
+                    <div class="coach-metadata">
+                        <p class="text-xs text-gray-500">Added: ${formatDate(coach.addedAt?.toDate?.() || new Date())}</p>
+                        ${coach.lastLogin ? `<p class="text-xs text-gray-500">Last login: ${formatDate(coach.lastLogin.toDate())}</p>` : ''}
+                    </div>
+                </div>
             </div>
-            <div class="flex items-center space-x-2">
+            <div class="coach-actions">
                 <span class="coach-status ${coach.isActive ? 'active' : 'inactive'}">
                     ${coach.isActive ? 'Active' : 'Inactive'}
                 </span>
                 <button onclick="toggleCoach('${coach.id}')" 
-                        class="px-3 py-1 rounded text-sm ${coach.isActive ? 'bg-yellow-500 text-white' : 'bg-green-500 text-white'}">
+                        class="action-btn ${coach.isActive ? 'deactivate-btn' : 'activate-btn'}">
                     ${coach.isActive ? 'Deactivate' : 'Activate'}
                 </button>
-                <button onclick="removeCoach('${coach.id}')" 
-                        class="px-3 py-1 bg-braves-red text-white rounded text-sm">
+                <button onclick="removeCoach('${coach.id}')" class="action-btn remove-btn">
                     Remove
                 </button>
             </div>
@@ -1151,7 +1180,8 @@ async function addCoach() {
     try {
         await addDoc(collection(db, "authorized_coaches"), {
             email: email,
-            displayName: email.split('@')[0],
+            displayName: email.split('@')[0], // Default to email username
+            photoURL: null, // Will be populated when they first sign in
             addedBy: currentUser.email,
             addedAt: new Date(),
             isActive: true
@@ -1553,6 +1583,95 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// --- PROFILE MANAGEMENT FUNCTIONS ---
+function getInitials(name) {
+    if (!name) return '?';
+    return name.split(' ')
+        .map(word => word.charAt(0).toUpperCase())
+        .slice(0, 2)
+        .join('');
+}
+
+function editCoachName(coachId) {
+    const coach = authorizedCoaches.find(c => c.id === coachId);
+    if (!coach) return;
+    
+    const displayNameEl = document.getElementById(`display-name-${coachId}`);
+    const currentName = coach.displayName || coach.email.split('@')[0];
+    
+    // Create inline editor
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentName;
+    input.className = 'coach-name-input';
+    input.maxLength = 50;
+    
+    // Create save/cancel buttons
+    const buttonsDiv = document.createElement('div');
+    buttonsDiv.className = 'name-edit-buttons';
+    
+    const saveBtn = document.createElement('button');
+    saveBtn.innerHTML = '<i class="fas fa-check"></i>';
+    saveBtn.className = 'save-name-btn';
+    saveBtn.onclick = () => saveCoachName(coachId, input.value.trim());
+    
+    const cancelBtn = document.createElement('button');
+    cancelBtn.innerHTML = '<i class="fas fa-times"></i>';
+    cancelBtn.className = 'cancel-name-btn';
+    cancelBtn.onclick = () => cancelNameEdit(coachId);
+    
+    buttonsDiv.appendChild(saveBtn);
+    buttonsDiv.appendChild(cancelBtn);
+    
+    // Replace display name with editor
+    displayNameEl.innerHTML = '';
+    displayNameEl.appendChild(input);
+    displayNameEl.appendChild(buttonsDiv);
+    
+    // Focus and select text
+    input.focus();
+    input.select();
+    
+    // Handle Enter key
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            saveCoachName(coachId, input.value.trim());
+        } else if (e.key === 'Escape') {
+            cancelNameEdit(coachId);
+        }
+    });
+}
+
+async function saveCoachName(coachId, newName) {
+    if (!newName) {
+        alert('Name cannot be empty');
+        return;
+    }
+    
+    try {
+        await updateDoc(doc(db, "authorized_coaches", coachId), {
+            displayName: newName
+        });
+        
+        // Update local data and re-render
+        const coach = authorizedCoaches.find(c => c.id === coachId);
+        if (coach) {
+            coach.displayName = newName;
+        }
+        
+        renderCoaches();
+        
+    } catch (error) {
+        console.error('Error updating coach name:', error);
+        alert('Error updating name. Please try again.');
+        cancelNameEdit(coachId);
+    }
+}
+
+function cancelNameEdit(coachId) {
+    renderCoaches();
+}
+
 // Make functions globally available
 window.openVideo = openVideo;
 window.closeVideo = closeVideo;
@@ -1568,3 +1687,6 @@ window.useVideo = useVideo;
 window.previewVideo = previewVideo;
 window.closeVideoSearch = closeVideoSearch;
 window.switchTab = switchTab;
+window.editCoachName = editCoachName;
+window.saveCoachName = saveCoachName;
+window.cancelNameEdit = cancelNameEdit;
