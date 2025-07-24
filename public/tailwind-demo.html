@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baseball Practice Generator - Tailwind Style Guide Demo</title>
+    
+    <!-- External Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Application Styles -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/tailwind-components.css">
+    
+    <script>
+        // Configure Tailwind to include custom colors
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'braves-navy': '#13274F',
+                        'braves-red': '#CE1141',
+                        'braves-red-hover': '#b10e37',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 antialiased">
+
+    <div class="container-app">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <div class="flex items-center justify-center mb-4">
+                <img src="https://cdn.freebiesupply.com/images/large/2x/atlanta-braves-logo-transparent.png" alt="Atlanta Braves Logo" class="h-16 w-auto mr-4">
+                <div>
+                    <h1 class="text-3xl sm:text-4xl font-bold text-braves-navy">Tailwind Style Guide Demo</h1>
+                    <p class="text-gray-600 mt-2">Baseball Practice Generator Component Library</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="card-base mb-8">
+            <div class="nav-tabs">
+                <button class="nav-tab nav-tab-active" onclick="showSection('buttons')">
+                    <i class="fas fa-mouse-pointer mr-2"></i>Buttons
+                </button>
+                <button class="nav-tab" onclick="showSection('cards')">
+                    <i class="fas fa-id-card mr-2"></i>Cards
+                </button>
+                <button class="nav-tab" onclick="showSection('forms')">
+                    <i class="fas fa-edit mr-2"></i>Forms
+                </button>
+                <button class="nav-tab" onclick="showSection('practice')">
+                    <i class="fas fa-baseball-ball mr-2"></i>Practice
+                </button>
+            </div>
+        </nav>
+
+        <!-- Button System Demo -->
+        <section id="buttons-section" class="demo-section">
+            <div class="card-base mb-8">
+                <div class="card-header">
+                    <h2 class="text-2xl font-bold text-braves-navy">Button System</h2>
+                    <p class="text-gray-600 mt-2">Consistent button styles for all interactions</p>
+                </div>
+                <div class="card-content space-y-6">
+                    
+                    <!-- Primary Buttons -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-braves-navy mb-3">Primary Buttons</h3>
+                        <div class="flex flex-wrap gap-3">
+                            <button class="btn-primary">
+                                <i class="fas fa-save mr-2"></i>Save Changes
+                            </button>
+                            <button class="btn-primary btn-sm">
+                                <i class="fas fa-plus mr-2"></i>Add New
+                            </button>
+                            <button class="btn-primary btn-lg">
+                                <i class="fas fa-download mr-2"></i>Download
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Secondary Buttons -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-braves-navy mb-3">Secondary Buttons</h3>
+                        <div class="flex flex-wrap gap-3">
+                            <button class="btn-secondary">Cancel</button>
+                            <button class="btn-secondary btn-sm">
+                                <i class="fas fa-edit mr-2"></i>Edit
+                            </button>
+                            <button class="btn-secondary btn-lg">View Details</button>
+                        </div>
+                    </div>
+
+                    <!-- Other Button Types -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-braves-navy mb-3">Other Button Types</h3>
+                        <div class="flex flex-wrap gap-3">
+                            <button class="btn-ghost">
+                                <i class="fas fa-times mr-2"></i>Close
+                            </button>
+                            <button class="btn-danger">
+                                <i class="fas fa-trash mr-2"></i>Delete
+                            </button>
+                            <button class="btn-icon">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Loading States -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-braves-navy mb-3">Loading States</h3>
+                        <div class="flex flex-wrap gap-3">
+                            <button class="btn-primary btn-loading" disabled>
+                                <i class="loading-spinner-sm mr-2"></i>Loading...
+                            </button>
+                            <button class="btn-secondary" disabled>Disabled</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Card System Demo -->
+        <section id="cards-section" class="demo-section hidden">
+            <div class="space-y-8">
+                
+                <!-- Practice Card -->
+                <div class="card-practice">
+                    <div class="practice-header">
+                        <div class="flex items-center justify-between">
+                            <h3 class="practice-title">Practice 1: Fundamentals</h3>
+                            <span class="practice-duration">45 minutes</span>
+                        </div>
+                    </div>
+                    <div class="card-content space-y-4">
+                        <div class="practice-section">
+                            <div class="section-header">
+                                <i class="fas fa-running section-icon"></i>
+                                <h4 class="section-title">Warmup</h4>
+                                <span class="section-duration">5 min</span>
+                            </div>
+                            <div class="section-content">
+                                <p class="section-description">Dynamic stretching and light jogging around the bases</p>
+                            </div>
+                        </div>
+                        
+                        <div class="station-block">
+                            <div class="station-header">
+                                <h5 class="station-title">Station 1: Hitting</h5>
+                                <a href="#" class="station-video">
+                                    <i class="fas fa-play-circle mr-1"></i>Watch Video
+                                </a>
+                            </div>
+                            <p class="station-description">Practice proper batting stance and swing mechanics using tees</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Cards -->
+                <div class="grid-responsive">
+                    <div class="card-admin">
+                        <div class="admin-card-header">
+                            <h4 class="text-lg font-semibold text-braves-navy">Admin Card</h4>
+                            <button class="btn-ghost btn-sm">Edit</button>
+                        </div>
+                        <p class="text-gray-600">This is an admin dashboard card with hover effects and actions.</p>
+                    </div>
+                    
+                    <div class="card-interactive">
+                        <div class="p-6">
+                            <h4 class="text-lg font-semibold text-braves-navy mb-2">Interactive Card</h4>
+                            <p class="text-gray-600">This card has hover effects and can be clicked.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card-base">
+                        <div class="card-header">
+                            <h4 class="text-lg font-semibold text-braves-navy">Base Card</h4>
+                        </div>
+                        <div class="card-content">
+                            <p class="text-gray-600">Standard card component with header and content sections.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Forms Demo -->
+        <section id="forms-section" class="demo-section hidden">
+            <div class="card-base">
+                <div class="card-header">
+                    <h2 class="text-2xl font-bold text-braves-navy">Form Components</h2>
+                    <p class="text-gray-600 mt-2">Consistent form styling with validation states</p>
+                </div>
+                <div class="card-content">
+                    
+                    <form class="space-y-6">
+                        <!-- Basic Form Fields -->
+                        <div class="form-field">
+                            <label class="form-label" for="title">Practice Title</label>
+                            <input type="text" id="title" class="form-input" placeholder="Enter practice title" value="Practice 1: Fundamentals">
+                            <p class="form-help">Choose a descriptive title for this practice</p>
+                        </div>
+                        
+                        <div class="form-field">
+                            <label class="form-label" for="description">Description</label>
+                            <textarea id="description" class="form-textarea" rows="3" placeholder="Describe this practice session">Focus on fundamental skills including hitting, fielding, and base running.</textarea>
+                        </div>
+                        
+                        <div class="mobile-stack">
+                            <div class="form-field flex-1">
+                                <label class="form-label" for="duration">Duration (minutes)</label>
+                                <input type="number" id="duration" class="form-input" min="1" max="120" value="45">
+                            </div>
+                            
+                            <div class="form-field flex-1">
+                                <label class="form-label" for="level">Skill Level</label>
+                                <select id="level" class="form-select">
+                                    <option>Beginner</option>
+                                    <option selected>Intermediate</option>
+                                    <option>Advanced</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Input Group -->
+                        <div class="input-group">
+                            <div class="form-field flex-1">
+                                <label class="form-label" for="video">Video URL</label>
+                                <input type="url" id="video" class="form-input" placeholder="https://youtube.com/...">
+                            </div>
+                            <button type="button" class="btn-secondary btn-sm mt-6">
+                                <i class="fas fa-search mr-2"></i>Find Videos
+                            </button>
+                        </div>
+                        
+                        <!-- Validation States -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="form-field">
+                                <label class="form-label" for="error-field">Error State</label>
+                                <input type="text" id="error-field" class="form-input form-input-error" value="Invalid input">
+                                <p class="form-error">This field is required</p>
+                            </div>
+                            
+                            <div class="form-field">
+                                <label class="form-label" for="success-field">Success State</label>
+                                <input type="text" id="success-field" class="form-input form-input-success" value="Valid input">
+                                <p class="form-success">Looks good!</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="flex space-x-3 pt-4">
+                            <button type="submit" class="btn-primary flex-1">
+                                <i class="fas fa-save mr-2"></i>Save Changes
+                            </button>
+                            <button type="button" class="btn-secondary">Cancel</button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Practice Components Demo -->
+        <section id="practice-section" class="demo-section hidden">
+            <div class="space-y-8">
+                
+                <!-- Practice Selector -->
+                <div class="card-base">
+                    <div class="card-header">
+                        <h2 class="text-2xl font-bold text-braves-navy">Practice Selector</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="practice-selector">
+                            <button class="practice-btn practice-btn-active">1</button>
+                            <button class="practice-btn">2</button>
+                            <button class="practice-btn">3</button>
+                            <button class="practice-btn">4</button>
+                            <button class="practice-btn">5</button>
+                            <button class="practice-btn">6</button>
+                            <button class="practice-btn">7</button>
+                            <button class="practice-btn">8</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Practice Editor -->
+                <div class="editor-section">
+                    <div class="editor-header">
+                        <i class="fas fa-edit text-braves-red mr-2"></i>
+                        <h3 class="editor-title">Edit Warmup Section</h3>
+                    </div>
+                    <div class="editor-content space-y-4">
+                        <div class="form-field">
+                            <label class="form-label">Section Title</label>
+                            <input type="text" class="form-input" value="Dynamic Warmup">
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-textarea" rows="3">Light jogging and dynamic stretching to prepare for practice</textarea>
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Duration (minutes)</label>
+                            <input type="number" class="form-input w-24" value="5">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- States & Feedback -->
+                <div class="card-base">
+                    <div class="card-header">
+                        <h2 class="text-2xl font-bold text-braves-navy">States & Feedback</h2>
+                    </div>
+                    <div class="card-content space-y-6">
+                        
+                        <!-- Loading States -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-braves-navy mb-3">Loading States</h3>
+                            <div class="flex items-center gap-4">
+                                <div class="loading-spinner"></div>
+                                <span class="text-gray-600">Loading...</span>
+                            </div>
+                        </div>
+
+                        <!-- Alert Messages -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-braves-navy mb-3">Alert Messages</h3>
+                            <div class="space-y-3">
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle mr-2"></i>
+                                    Practice saved successfully!
+                                </div>
+                                <div class="alert alert-error">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    Something went wrong. Please try again.
+                                </div>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                    Remember to save your changes before leaving.
+                                </div>
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    This action cannot be undone.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Status Badges -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-braves-navy mb-3">Status Badges</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="badge badge-success">Active</span>
+                                <span class="badge badge-warning">Pending</span>
+                                <span class="badge badge-error">Inactive</span>
+                                <span class="badge badge-info">Draft</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center mt-12 text-gray-500 text-sm">
+            <p>Baseball Practice Generator - Tailwind Style Guide Demo</p>
+            <p class="mt-2">Built with ❤️ for youth baseball coaching</p>
+        </footer>
+
+    </div>
+
+    <script>
+        // Simple tab switching
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.demo-section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            // Remove active state from all tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('nav-tab-active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionName + '-section').classList.remove('hidden');
+            
+            // Add active state to clicked tab
+            event.target.closest('.nav-tab').classList.add('nav-tab-active');
+        }
+
+        // Add some interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            // Practice button interactions
+            document.querySelectorAll('.practice-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.practice-btn').forEach(b => b.classList.remove('practice-btn-active'));
+                    this.classList.add('practice-btn-active');
+                });
+            });
+
+            // Card hover effects
+            document.querySelectorAll('.card-interactive').forEach(card => {
+                card.addEventListener('click', function() {
+                    alert('Interactive card clicked!');
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
