@@ -901,6 +901,167 @@
     }
 }
 
+/* Template Card Styles */
+.template-card { 
+    transition: all 0.2s ease-in-out; 
+}
+
+.template-card:hover { 
+    transform: translateY(-4px); 
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1); 
+    border-color: #CE1141; /* Braves Red */
+}
+
+/* Create Practice Modal Styles */
+.modal-overlay {
+    backdrop-filter: blur(4px);
+}
+
+.creation-step {
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    color: var(--braves-red) !important;
+}
+
+/* Template Grid Styles */
+#template-grid .template-card {
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#template-grid .template-card:hover {
+    border-color: var(--braves-red);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+#template-grid .template-card.selected {
+    border-color: var(--braves-red);
+    background-color: #fef2f2;
+    box-shadow: 0 0 0 3px rgba(206, 17, 65, 0.1);
+}
+
+.template-card h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--braves-navy);
+    margin-bottom: 0.25rem;
+}
+
+.template-card p {
+    font-size: 0.75rem;
+    color: #6b7280;
+    line-height: 1.3;
+}
+
+/* AI Creation Form Styles */
+#ai-creation-step input,
+#ai-creation-step textarea {
+    border: 2px solid #e5e7eb;
+    transition: all 0.2s ease;
+}
+
+#ai-creation-step input:focus,
+#ai-creation-step textarea:focus {
+    border-color: var(--braves-red);
+    box-shadow: 0 0 0 3px rgba(206, 17, 65, 0.1);
+    outline: none;
+}
+
+#generate-practice-btn {
+    transition: all 0.2s ease;
+}
+
+#generate-practice-btn:hover {
+    background-color: var(--braves-red-hover);
+    transform: translateY(-1px);
+}
+
+#generate-practice-btn:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Loading and Success States */
+#creation-loading-step .fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+#creation-success-step button {
+    transition: all 0.2s ease;
+}
+
+#creation-success-step button:hover {
+    transform: translateY(-1px);
+}
+
+/* Mobile Responsive for Create Modal */
+@media (max-width: 768px) {
+    .modal-overlay .bg-white {
+        margin: 1rem;
+        max-height: calc(100vh - 2rem);
+    }
+    
+    #creation-step-1 .grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    #template-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+    
+    .template-card {
+        padding: 0.75rem;
+        min-height: 100px;
+    }
+    
+    .template-card h4 {
+        font-size: 0.75rem;
+    }
+    
+    .template-card p {
+        font-size: 0.625rem;
+    }
+    
+    #ai-creation-step .space-y-4 {
+        max-width: none;
+    }
+    
+    #creation-success-step .flex {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    #creation-success-step button {
+        width: 100%;
+    }
+}
+
 /* Mobile Responsive for Coach Cards */
 @media (max-width: 640px) {
     .enhanced-coach-card {
