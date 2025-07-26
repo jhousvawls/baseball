@@ -1,0 +1,41 @@
+{
+  "name": "coachs-dugout-monorepo",
+  "version": "1.0.0",
+  "description": "Coach's Dugout - Baseball Practice Planning App with Marketing Site",
+  "private": true,
+  "scripts": {
+    "dev:marketing": "cd marketing && npm run dev",
+    "build:marketing": "cd marketing && npm run build",
+    "deploy:marketing": "./deploy-marketing.sh",
+    "deploy:app": "./deploy-app.sh",
+    "deploy:unified": "./deploy-unified.sh",
+    "deploy": "./deploy-unified.sh",
+    "build:all": "cd marketing && npm run build",
+    "install:marketing": "cd marketing && npm install",
+    "clean": "rm -rf marketing/dist marketing/node_modules hosting",
+    "test:marketing": "cd marketing && npm run test"
+  },
+  "workspaces": [
+    "marketing"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jhousvawls/baseball.git"
+  },
+  "keywords": [
+    "baseball",
+    "coaching",
+    "practice-planning",
+    "youth-sports",
+    "react",
+    "firebase"
+  ],
+  "author": "Coach's Dugout",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.0.0"
+  }
+}
