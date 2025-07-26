@@ -1,14 +1,15 @@
 # Coach's Dugout Practice App
 
-The core practice planning application for youth baseball coaches. This is the main application that provides AI-powered drill suggestions, video search, and team collaboration features.
+The core practice planning application for youth baseball coaches. This is the main application that provides AI-powered drill suggestions, video search, team collaboration features, and **NEW: AI-powered practice template creation**.
 
 ## 🏗️ Architecture
 
 This is a vanilla JavaScript application using:
 - **Firebase**: Authentication, Firestore database, hosting
 - **YouTube API**: Video search and embedding
-- **OpenAI API**: AI-powered drill suggestions
+- **OpenAI API**: AI-powered drill suggestions and practice generation
 - **Responsive Design**: Mobile-first approach
+- **Template System**: AI and template-based practice creation
 
 ## 📁 Structure
 
@@ -57,6 +58,14 @@ app/
 - Time management tools
 - Equipment and setup tracking
 - Weather-aware suggestions
+
+### **🆕 Practice Template System**
+- **AI-Powered Creation**: Generate complete practices from natural language prompts
+- **Template Library**: Choose from pre-built, proven practice plans
+- **Smart Customization**: Modify generated practices to fit your team's needs
+- **Time-Based Planning**: Automatic duration calculation and validation
+- **Multi-Step Workflow**: Intuitive creation process with visual feedback
+- **Source Tracking**: Track whether practices were AI-generated, template-based, or custom
 
 ## 🔧 Configuration
 
@@ -111,6 +120,57 @@ When deployed as part of the monorepo:
 - Firestore security rules for data protection
 - Role-based feature access
 
+## 🆕 Using the Practice Template System
+
+### **Creating New Practices**
+
+1. **Access Admin Dashboard**
+   - Click the "Admin" button at the bottom of any practice page
+   - Sign in with your Google account or email/password
+   - Navigate to the "My Practices" section
+
+2. **Start Practice Creation**
+   - Click the red "Create New Practice" button in the admin header
+   - Choose your creation method:
+
+#### **Option A: AI-Powered Creation**
+```
+1. Click "Create with AI Assistant"
+2. Describe your practice focus (e.g., "Focus on fielding ground balls and accurate throwing")
+3. Set practice duration (default: 60 minutes)
+4. Click "Generate Practice Plan"
+5. Wait for AI to create your custom practice
+6. Edit the generated practice or create another
+```
+
+#### **Option B: Template-Based Creation**
+```
+1. Click "Choose from a Template"
+2. Browse available templates:
+   - Fundamentals Focus (Basic skills and fun)
+   - Defense First (Fielding and throwing)
+   - Hitting Power (Batting and contact)
+   - Game Ready (Scrimmage focused)
+3. Select your preferred template
+4. Customize the generated practice as needed
+```
+
+### **Practice Creation Examples**
+
+**AI Prompts that work well:**
+- "Focus on hitting fundamentals for beginners"
+- "Practice base running and game situations"
+- "Work on defensive positioning and communication"
+- "Fun practice with lots of movement and energy"
+- "Prepare team for their first game"
+
+**Generated Practice Structure:**
+- Automatic warm-up section (5-10 minutes)
+- 4 skill stations with descriptions (30-40 minutes)
+- Fun finisher activity (10-15 minutes)
+- Wrap-up and team building (5 minutes)
+- Parent homework assignment
+
 ## 🗄️ Database Structure
 
 ### **Firestore Collections**
@@ -118,15 +178,47 @@ When deployed as part of the monorepo:
 teams/
 ├── {teamId}/
 │   ├── coaches/           # Team coaching staff
-│   ├── practices/         # Practice plans
+│   ├── practices/         # Practice plans (enhanced with template metadata)
 │   ├── players/          # Team roster
 │   └── settings/         # Team configuration
+
+practice_templates/
+├── {templateId}/         # Pre-built practice templates
+│   ├── name              # Template name
+│   ├── category          # beginner, intermediate, advanced
+│   ├── duration          # Default duration in minutes
+│   └── sections/         # Template structure
+
+ai_practice_requests/
+├── {requestId}/          # AI generation history
+│   ├── prompt            # User's original request
+│   ├── generatedPractice # AI response
+│   └── metadata          # Creation details
 
 users/
 ├── {userId}/             # User profiles and preferences
 
 videos/
 ├── {videoId}/            # Curated video database
+```
+
+### **Enhanced Practice Data Structure**
+```javascript
+{
+  id: 1,
+  title: "AI Practice: Fielding Focus",
+  totalTime: 60,
+  // ... existing practice fields ...
+  
+  // New metadata fields
+  source: "ai_generated", // "ai_generated", "template", "manual"
+  templateId: "defense_first", // If created from template
+  aiPrompt: "Focus on fielding ground balls", // If AI generated
+  createdAt: timestamp,
+  createdBy: "coach@example.com",
+  lastUpdatedAt: timestamp,
+  lastUpdatedBy: "coach@example.com"
+}
 ```
 
 ## 🛠️ Development
