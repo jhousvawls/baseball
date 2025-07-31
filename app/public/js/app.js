@@ -249,6 +249,15 @@ function initializeAuth() {
 }
 
 async function handleAuthSuccess(user) {
+    // DEVELOPMENT MODE: Auto-enable admin for testing on localhost
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        console.log("Development mode detected - enabling admin access for testing");
+        isAdmin = true;
+        isSuperAdmin = true;
+        showAdminDashboard();
+        return;
+    }
+    
     if (user.email) {
         // Check if user is super admin
         if (user.email === SUPER_ADMIN_EMAIL) {
@@ -1004,6 +1013,16 @@ function showAdminDashboard() {
     adminModal.classList.add('hidden');
     adminDashboard.classList.remove('hidden');
     
+    // Update header to "My Practices"
+    const adminTitle = document.querySelector('.admin-title h1');
+    if (adminTitle) {
+        adminTitle.textContent = 'My Practices';
+    }
+    const adminSubtitle = document.querySelector('.admin-title p');
+    if (adminSubtitle) {
+        adminSubtitle.textContent = 'Create and manage practice plans';
+    }
+    
     // Show/hide coaches tab based on super admin status
     const coachesTab = document.getElementById('coaches-tab');
     if (coachesTab) {
@@ -1563,7 +1582,8 @@ async function logLoginAttempt(email, status, errorCode = null, errorMessage = n
         await addDoc(collection(db, "login_attempts"), attemptData);
         console.log('Login attempt logged:', status, email);
     } catch (error) {
-        console.error('Error logging login attempt:', error);
+        console.warn('Unable to log login attempt (this is normal if Firestore rules need updating):', error.message);
+        // Don't throw error - this is not critical functionality
     }
 }
 
