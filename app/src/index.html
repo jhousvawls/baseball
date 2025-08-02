@@ -266,85 +266,127 @@
         </div>
     </div>
 
-    <!-- "Create New Practice" Modal -->
-    <div id="create-practice-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl mx-auto max-h-[90vh] flex flex-col">
-            <!-- Modal Header -->
-            <div class="flex-shrink-0 flex items-center justify-between p-4 border-b">
-                <h2 class="text-xl font-bold text-braves-navy">Create a New Practice Plan</h2>
-                <button id="close-create-modal" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+    <!-- Create Practice Modal -->
+    <div id="create-practice-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-auto max-h-screen overflow-y-auto">
+            <!-- Step 1: Choose Creation Method -->
+            <div id="creation-step-1" class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-braves-navy">Create New Practice</h2>
+                    <button id="close-create-modal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="text-center mb-8">
+                    <p class="text-gray-600">Choose how you'd like to create your new practice plan</p>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <button id="create-with-ai-btn" class="creation-option-card bg-gradient-to-br from-braves-red to-red-600 text-white p-6 rounded-xl hover:shadow-lg transition-all">
+                        <i class="fas fa-robot text-4xl mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Create with AI Assistant</h3>
+                        <p class="text-sm opacity-90">Describe your practice goals and let AI generate a complete plan</p>
+                    </button>
+                    
+                    <button id="use-template-btn" class="creation-option-card bg-gradient-to-br from-braves-navy to-blue-700 text-white p-6 rounded-xl hover:shadow-lg transition-all">
+                        <i class="fas fa-clipboard-list text-4xl mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Choose from a Template</h3>
+                        <p class="text-sm opacity-90">Start with a pre-built practice template and customize as needed</p>
+                    </button>
+                </div>
             </div>
-
-            <!-- Modal Body -->
-            <div class="flex-grow p-6 overflow-y-auto">
-                <!-- Step 1: Choose Method -->
-                <div id="creation-step-1">
-                    <h3 class="text-lg font-semibold text-center text-gray-800 mb-6">How would you like to start?</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Option A: Create with AI -->
-                        <div id="create-with-ai-btn" class="template-card bg-gray-50 p-8 rounded-lg border-2 border-gray-200 text-center cursor-pointer">
-                            <i class="fas fa-sparkles text-4xl text-blue-600 mb-4"></i>
-                            <h4 class="text-xl font-bold text-braves-navy">Create with AI Assistant</h4>
-                            <p class="text-gray-600 mt-2">Describe your goals and let our AI build a custom, timed practice plan for you in seconds.</p>
-                        </div>
-                        <!-- Option B: Use a Template -->
-                        <div id="use-template-btn" class="template-card bg-gray-50 p-8 rounded-lg border-2 border-gray-200 text-center cursor-pointer">
-                            <i class="fas fa-file-alt text-4xl text-braves-red mb-4"></i>
-                            <h4 class="text-xl font-bold text-braves-navy">Choose from a Template</h4>
-                            <p class="text-gray-600 mt-2">Start with one of our pre-built, proven practice plans and customize it to fit your needs.</p>
-                        </div>
-                    </div>
+            
+            <!-- Step 2A: AI Creation -->
+            <div id="ai-creation-step" class="p-6 hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-braves-navy">AI Practice Generator</h2>
+                    <button id="close-create-modal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
                 </div>
-
-                <!-- Step 2 (AI): AI Input Form -->
-                <div id="ai-creation-step" class="hidden">
-                    <button class="back-btn text-sm text-blue-600 hover:underline font-semibold mb-4"><i class="fas fa-arrow-left mr-1"></i>Back</button>
-                    <h3 class="text-xl font-bold text-center text-braves-navy mb-4">AI Practice Builder</h3>
-                    <div class="space-y-4 max-w-lg mx-auto">
-                        <div>
-                            <label for="ai-focus" class="block text-sm font-semibold text-gray-700 mb-2">What is the main focus of this practice?</label>
-                            <input type="text" id="ai-focus" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="e.g., Fielding ground balls and accurate throwing">
-                        </div>
-                        <div>
-                            <label for="ai-duration" class="block text-sm font-semibold text-gray-700 mb-2">How long is the practice (in minutes)?</label>
-                            <input type="number" id="ai-duration" class="w-full p-3 border border-gray-300 rounded-lg" value="60">
-                        </div>
-                        <button id="generate-practice-btn" class="w-full bg-braves-red text-white py-3 rounded-lg font-semibold">Generate Practice Plan</button>
-                    </div>
+                
+                <div class="mb-6">
+                    <label for="ai-focus" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Practice Focus <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="ai-focus" 
+                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-braves-red focus:border-transparent resize-none"
+                              rows="3" 
+                              placeholder="e.g., 'Focus on fielding ground balls and accurate throwing for 6U beginners'"
+                              required></textarea>
+                    <p class="text-xs text-gray-500 mt-1">Be specific about skills, age group, and any special focus areas</p>
                 </div>
-
-                <!-- Step 2 (Template): Template Selection -->
-                <div id="template-selection-step" class="hidden">
-                    <button class="back-btn text-sm text-blue-600 hover:underline font-semibold mb-4"><i class="fas fa-arrow-left mr-1"></i>Back</button>
-                    <h3 class="text-xl font-bold text-center text-braves-navy mb-4">Choose a Practice Template</h3>
-                    <div id="template-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <!-- Templates will be loaded dynamically -->
-                    </div>
+                
+                <div class="mb-6">
+                    <label for="ai-duration" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Practice Duration (minutes)
+                    </label>
+                    <select id="ai-duration" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-braves-red focus:border-transparent">
+                        <option value="45">45 minutes</option>
+                        <option value="60" selected>60 minutes</option>
+                        <option value="75">75 minutes</option>
+                        <option value="90">90 minutes</option>
+                    </select>
                 </div>
-
-                <!-- Step 3: Loading State -->
-                <div id="creation-loading-step" class="hidden">
-                    <div class="text-center py-12">
-                        <i class="fas fa-spinner fa-spin text-4xl text-braves-navy mb-4"></i>
-                        <h3 class="text-xl font-bold text-braves-navy mb-2">Creating Your Practice...</h3>
-                        <p class="text-gray-600">This may take a few moments</p>
-                    </div>
+                
+                <div class="flex space-x-3">
+                    <button class="back-btn flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all">
+                        <i class="fas fa-arrow-left mr-2"></i>Back
+                    </button>
+                    <button id="generate-practice-btn" class="flex-1 bg-braves-red text-white py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all">
+                        <i class="fas fa-magic mr-2"></i>Generate Practice Plan
+                    </button>
                 </div>
-
-                <!-- Step 4: Success State -->
-                <div id="creation-success-step" class="hidden">
-                    <div class="text-center py-8">
-                        <i class="fas fa-check-circle text-4xl text-green-500 mb-4"></i>
-                        <h3 class="text-xl font-bold text-braves-navy mb-2">Practice Created Successfully!</h3>
-                        <p class="text-gray-600 mb-6">Your new practice has been added to your collection.</p>
-                        <div class="flex justify-center space-x-4">
-                            <button id="edit-new-practice-btn" class="bg-braves-red text-white px-6 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all">
-                                <i class="fas fa-edit mr-2"></i>Edit Practice
-                            </button>
-                            <button id="create-another-btn" class="bg-gray-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-600 transition-all">
-                                <i class="fas fa-plus mr-2"></i>Create Another
-                            </button>
-                        </div>
+            </div>
+            
+            <!-- Step 2B: Template Selection -->
+            <div id="template-selection-step" class="p-6 hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-braves-navy">Choose Template</h2>
+                    <button id="close-create-modal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="mb-6">
+                    <p class="text-gray-600">Select a template to start with. You can customize it after creation.</p>
+                </div>
+                
+                <div id="template-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <!-- Template cards will be generated here -->
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button class="back-btn flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all">
+                        <i class="fas fa-arrow-left mr-2"></i>Back
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Step 3: Loading -->
+            <div id="creation-loading-step" class="p-6 hidden">
+                <div class="text-center py-12">
+                    <i class="fas fa-spinner fa-spin text-4xl text-braves-navy mb-6"></i>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Creating Your Practice</h3>
+                    <p class="text-gray-600">This may take a few moments...</p>
+                </div>
+            </div>
+            
+            <!-- Step 4: Success -->
+            <div id="creation-success-step" class="p-6 hidden">
+                <div class="text-center py-8">
+                    <i class="fas fa-check-circle text-5xl text-green-500 mb-6"></i>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">Practice Created Successfully!</h3>
+                    <p class="text-gray-600 mb-8">Your new practice plan is ready to use.</p>
+                    
+                    <div class="flex space-x-3">
+                        <button id="edit-new-practice-btn" class="flex-1 bg-braves-red text-white py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all">
+                            <i class="fas fa-edit mr-2"></i>Edit Practice
+                        </button>
+                        <button id="create-another-btn" class="flex-1 bg-braves-navy text-white py-3 rounded-lg font-semibold hover:bg-braves-red transition-all">
+                            <i class="fas fa-plus mr-2"></i>Create Another
+                        </button>
                     </div>
                 </div>
             </div>
